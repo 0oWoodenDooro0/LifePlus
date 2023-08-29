@@ -56,7 +56,6 @@ fun VideoItem(videoData: VideoData) {
         )
     }
     if (showVideoDialog) {
-        println(1)
         VideoDialog(
             onDismiss = {
                 showVideoDialog = false
