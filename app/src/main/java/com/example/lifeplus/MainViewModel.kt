@@ -3,6 +3,7 @@ package com.example.lifeplus
 import androidx.compose.runtime.mutableStateListOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.lifeplus.domain.VideoData
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.htmlunit.BrowserVersion

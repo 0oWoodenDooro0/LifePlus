@@ -1,4 +1,4 @@
-package com.example.lifeplus
+package com.example.lifeplus.domain
 
 data class VideoData(
     var id: Int,

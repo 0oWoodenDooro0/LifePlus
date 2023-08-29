@@ -1,4 +1,4 @@
-package com.example.lifeplus
+package com.example.lifeplus.ui
 
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -19,7 +19,8 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
-import com.example.lifeplus.ui.VideoDialog
+import com.example.lifeplus.R
+import com.example.lifeplus.domain.VideoData
 
 @Composable
 fun VideoListView(videoData: List<VideoData>) {
