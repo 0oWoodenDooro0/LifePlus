@@ -24,10 +24,7 @@ class MainActivity : ComponentActivity() {
                     color = MaterialTheme.colorScheme.background
                 ) {
                     VideoListView(
-                        videos = viewModel.videos,
-                        videoOnClick = {
-                            viewModel.videoOnClick(it)
-                        }
+                        videoData = viewModel.videoDatas
                     )
                 }
             }

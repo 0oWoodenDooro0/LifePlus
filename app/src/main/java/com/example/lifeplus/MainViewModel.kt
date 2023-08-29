@@ -1,8 +1,6 @@
 package com.example.lifeplus
 
-import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
@@ -18,8 +16,8 @@ class MainViewModel : ViewModel() {
 
     private val webClient: WebClient = WebClient(BrowserVersion.CHROME)
 
-    private val _videos = mutableStateListOf<Video>()
-    val videos: List<Video> = _videos
+    private val _videoDatas = mutableStateListOf<VideoData>()
+    val videoDatas: List<VideoData> = _videoDatas
 
     private fun load() {
         viewModelScope.launch(Dispatchers.IO) {
@@ -34,8 +32,8 @@ class MainViewModel : ViewModel() {
                     val imageUrl = element.getElementsByTag("img").attr("src")
                     val detailUrl = baseUrl + element.select("a")[0].attr("href")
                     val previewUrl = element.getElementsByTag("img").attr("data-mediabook")
-                    val video = Video(index, title, imageUrl, previewUrl, detailUrl)
-                    _videos.add(video)
+                    val videoData = VideoData(index, title, imageUrl, previewUrl, detailUrl)
+                    _videoDatas.add(videoData)
                 }
             } catch (e: IOException) {
                 e.printStackTrace()
@@ -47,21 +45,6 @@ class MainViewModel : ViewModel() {
         webClient.options.isCssEnabled = false
         webClient.options.isThrowExceptionOnScriptError = false
         load()
-    }
-
-    private fun clearFocus() {
-        _videos.forEach {
-            if (it.focus) {
-                it.focus = false
-            }
-        }
-    }
-
-    fun videoOnClick(video: Video) {
-        if (!video.focus) {
-            clearFocus()
-            video.focus = true
-        }
     }
 
 }
