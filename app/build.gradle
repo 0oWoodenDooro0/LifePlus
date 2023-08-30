@@ -5,12 +5,12 @@ plugins {
 
 android {
     namespace 'com.example.lifeplus'
-    compileSdk 33
+    compileSdk 34
 
     defaultConfig {
         applicationId "com.example.lifeplus"
         minSdk 29
-        targetSdk 33
+        targetSdk 34
         versionCode 1
         versionName "1.0"
 
@@ -64,13 +64,13 @@ dependencies {
     androidTestImplementation 'androidx.compose.ui:ui-test-junit4'
     debugImplementation 'androidx.compose.ui:ui-tooling'
     debugImplementation 'androidx.compose.ui:ui-test-manifest'
-
+    // AsyncImage
     implementation 'io.coil-kt:coil-compose:2.4.0'
-
+    // ExoPlayer
     implementation 'androidx.media3:media3-exoplayer:1.1.1'
     implementation 'androidx.media3:media3-ui:1.1.1'
-
+    //Jsoup
     implementation 'org.jsoup:jsoup:1.16.1'
-
+    //HtmlUnit
     implementation 'org.htmlunit:htmlunit3-android:3.5.0'
 }
