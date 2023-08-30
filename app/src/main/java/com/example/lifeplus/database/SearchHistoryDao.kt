@@ -11,6 +11,12 @@ interface SearchHistoryDao {
     @Upsert
     suspend fun upsertSearchHistoryData(searchHistoryData: SearchHistoryData)
 
-    @Query("SELECT * FROM searchhistory LIMIT 4")
+    @Query("DELETE FROM searchhistory WHERE `query` = :query")
+    suspend fun deleteByQuery(query: String)
+
+    @Query("SELECT * FROM searchhistory ORDER BY id DESC LIMIT 4")
     fun getMaxFourSearchHistory(): Flow<List<SearchHistoryData>>
+
+    @Query("SELECT EXISTS(SELECT * FROM searchhistory WHERE `query` = :query)")
+    suspend fun isQueryExist(query: String): Boolean
 }

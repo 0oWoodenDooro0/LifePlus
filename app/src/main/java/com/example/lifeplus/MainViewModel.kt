@@ -22,8 +22,9 @@ import java.io.IOException
 
 class MainViewModel(private val searchHistoryRepository: SearchHistoryRepository) : ViewModel() {
 
-    private lateinit var webClient: WebClient
+    private var webClient: WebClient = WebClient(BrowserVersion.CHROME)
     private lateinit var baseUrl: String
+    private lateinit var url: String
     private lateinit var htmlPage: HtmlPage
 
     val searchHistorys: LiveData<List<SearchHistoryData>> =
@@ -36,63 +37,68 @@ class MainViewModel(private val searchHistoryRepository: SearchHistoryRepository
     val isRefreshing: State<Boolean> = _isRefreshing
 
     private val _isSearching = mutableStateOf(false)
-    val isSearching : State<Boolean> = _isSearching
+    val isSearching: State<Boolean> = _isSearching
 
     private fun home() {
         viewModelScope.launch(Dispatchers.IO) {
+            baseUrl = "https://pornhub.com"
+            url = baseUrl
             try {
-                webClient = WebClient(BrowserVersion.CHROME)
-                webClient.options.isCssEnabled = false
-                webClient.options.isThrowExceptionOnScriptError = false
-                baseUrl = "https://pornhub.com"
-                htmlPage = webClient.getPage(baseUrl)
-                val doc: Document = Jsoup.parse(htmlPage.asXml())
-                val vidHtml = doc.select("#singleFeedSection")
-                val vidData = vidHtml.select("div.phimage")
-                vidData.forEachIndexed { index, element ->
-                    val title = element.getElementsByTag("img").attr("title")
-                    val imageUrl = element.getElementsByTag("img").attr("src")
-                    val detailUrl = baseUrl + element.select("a")[0].attr("href")
-                    val previewUrl = element.getElementsByTag("img").attr("data-mediabook")
-                    val videoData = VideoData(index, title, imageUrl, previewUrl, detailUrl)
-                    _videoDatas.add(videoData)
-                }
+                htmlPage = webClient.getPage(url)
             } catch (e: IOException) {
                 e.printStackTrace()
+            }
+            webClient.waitForBackgroundJavaScript(10000)
+            webClient.close()
+            val doc: Document = Jsoup.parse(htmlPage.asXml())
+            val vidHtml = doc.select("#singleFeedSection")
+            val vidData = vidHtml.select("div.phimage")
+            vidData.forEachIndexed { index, element ->
+                val title = element.getElementsByTag("img").attr("title")
+                val imageUrl = element.getElementsByTag("img").attr("src")
+                val detailUrl = baseUrl + element.select("a")[0].attr("href")
+                val previewUrl = element.getElementsByTag("img").attr("data-mediabook")
+                val videoData = VideoData(index, title, imageUrl, previewUrl, detailUrl)
+                _videoDatas.add(videoData)
             }
         }
     }
 
     init {
+        webClient.options.isCssEnabled = false
+        webClient.options.isThrowExceptionOnScriptError = false
+        webClient.options.isThrowExceptionOnFailingStatusCode = false
         home()
     }
 
     private fun upsert(searchHistory: SearchHistoryData) = viewModelScope.launch {
+        if (searchHistoryRepository.isQueryExist(searchHistory.query)) {
+            searchHistoryRepository.deleteByQuery(searchHistory.query)
+        }
         searchHistoryRepository.upsert(searchHistory)
     }
 
     fun onRefresh() {
         viewModelScope.launch(Dispatchers.IO) {
             _isRefreshing.value = true
+            _videoDatas.clear()
             try {
-                _videoDatas.clear()
-                webClient = WebClient(BrowserVersion.CHROME)
-                webClient.options.isCssEnabled = false
-                webClient.options.isThrowExceptionOnScriptError = false
-                htmlPage = webClient.getPage(baseUrl)
-                val doc: Document = Jsoup.parse(htmlPage.asXml())
-                val vidHtml = doc.select("#singleFeedSection")
-                val vidData = vidHtml.select("div.phimage")
-                vidData.forEachIndexed { index, element ->
-                    val title = element.getElementsByTag("img").attr("title")
-                    val imageUrl = element.getElementsByTag("img").attr("src")
-                    val detailUrl = baseUrl + element.select("a")[0].attr("href")
-                    val previewUrl = element.getElementsByTag("img").attr("data-mediabook")
-                    val videoData = VideoData(index, title, imageUrl, previewUrl, detailUrl)
-                    _videoDatas.add(videoData)
-                }
+                htmlPage = webClient.getPage(url)
             } catch (e: IOException) {
                 e.printStackTrace()
+            }
+            webClient.waitForBackgroundJavaScript(10000)
+            webClient.close()
+            val doc: Document = Jsoup.parse(htmlPage.asXml())
+            val vidHtml = doc.select("#singleFeedSection")
+            val vidData = vidHtml.select("div.phimage")
+            vidData.forEachIndexed { index, element ->
+                val title = element.getElementsByTag("img").attr("title")
+                val imageUrl = element.getElementsByTag("img").attr("src")
+                val detailUrl = baseUrl + element.select("a")[0].attr("href")
+                val previewUrl = element.getElementsByTag("img").attr("data-mediabook")
+                val videoData = VideoData(index, title, imageUrl, previewUrl, detailUrl)
+                _videoDatas.add(videoData)
             }
             _isRefreshing.value = false
         }
@@ -101,29 +107,29 @@ class MainViewModel(private val searchHistoryRepository: SearchHistoryRepository
     fun search(query: String) {
         viewModelScope.launch(Dispatchers.IO) {
             _isSearching.value = true
+            _videoDatas.clear()
+            url = "https://www.pornhub.com/video/search?search=$query"
             try {
-                _videoDatas.clear()
-                webClient = WebClient(BrowserVersion.CHROME)
-                webClient.options.isCssEnabled = false
-                webClient.options.isThrowExceptionOnScriptError = false
-                htmlPage = webClient.getPage("https://www.pornhub.com/video/search?search=$query")
-                val doc: Document = Jsoup.parse(htmlPage.asXml())
-                val vidHtml = doc.select("#videoSearchResult")
-                val vidData = vidHtml.select("div.phimage")
-                vidData.forEachIndexed { index, element ->
-                    val title = element.getElementsByTag("img").attr("title")
-                    val imageUrl = element.getElementsByTag("img").attr("src")
-                    val detailUrl = baseUrl + element.select("a")[0].attr("href")
-                    val previewUrl = element.getElementsByTag("img").attr("data-mediabook")
-                    val videoData = VideoData(index, title, imageUrl, previewUrl, detailUrl)
-                    _videoDatas.add(videoData)
-                }
+                htmlPage = webClient.getPage(url)
             } catch (e: IOException) {
                 e.printStackTrace()
             }
+            webClient.waitForBackgroundJavaScript(10000)
+            webClient.close()
+            val doc: Document = Jsoup.parse(htmlPage.asXml())
+            val vidHtml = doc.select("#videoSearchResult")
+            val vidData = vidHtml.select("div.phimage")
+            vidData.forEachIndexed { index, element ->
+                val title = element.getElementsByTag("img").attr("title")
+                val imageUrl = element.getElementsByTag("img").attr("src")
+                val detailUrl = baseUrl + element.select("a")[0].attr("href")
+                val previewUrl = element.getElementsByTag("img").attr("data-mediabook")
+                val videoData = VideoData(index, title, imageUrl, previewUrl, detailUrl)
+                _videoDatas.add(videoData)
+            }
+            upsert(SearchHistoryData(query))
             _isSearching.value = false
         }
-        upsert(SearchHistoryData(query))
     }
 
     class MainViewModelFactory(private val searchHistoryRepository: SearchHistoryRepository) :
