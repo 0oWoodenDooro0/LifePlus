@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.sp
@@ -30,8 +31,14 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
+                    val isRefreshing by viewModel.isRefreshing
+                    val videoDatas = viewModel.videoDatas
                     if (viewModel.videoDatas.isNotEmpty()) {
-                        VideoListView(videoData = viewModel.videoDatas)
+                        VideoListView(
+                            videoDatas = videoDatas,
+                            isRefreshing = isRefreshing,
+                            onRefresh = { viewModel.onRefresh() }
+                        )
                     } else {
                         Column(
                             modifier = Modifier.fillMaxSize(),

@@ -21,28 +21,35 @@ import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.example.lifeplus.R
 import com.example.lifeplus.domain.VideoData
+import com.google.accompanist.swiperefresh.SwipeRefresh
+import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 
 @Composable
-fun VideoListView(videoData: List<VideoData>) {
-    LazyVerticalGrid(columns = GridCells.Fixed(2), modifier = Modifier.fillMaxSize()) {
-        items(count = videoData.size, key = { videoData[it].id }, itemContent = { index ->
-            val video = videoData[index]
-            VideoItem(video)
-        })
+fun VideoListView(videoDatas: List<VideoData>, isRefreshing: Boolean, onRefresh: () -> Unit) {
+    SwipeRefresh(state = rememberSwipeRefreshState(isRefreshing), onRefresh = onRefresh) {
+        LazyVerticalGrid(columns = GridCells.Fixed(2), modifier = Modifier.fillMaxSize()) {
+            items(count = videoDatas.size, key = { videoDatas[it].id }, itemContent = { index ->
+                val video = videoDatas[index]
+                VideoItem(video)
+            })
+        }
     }
+
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun VideoItem(videoData: VideoData) {
     var showVideoDialog by remember { mutableStateOf(false) }
-    Card(modifier = Modifier
-        .fillMaxSize()
-        .padding(5.dp),
+    Card(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(5.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 10.dp),
         onClick = {
             showVideoDialog = true
-        }) {
+        }
+    ) {
         AsyncImage(
             model = videoData.imageUrl,
             contentDescription = videoData.title,
