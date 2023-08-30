@@ -1,5 +1,7 @@
 package com.example.lifeplus.ui
 
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -17,7 +19,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.example.lifeplus.R
 import com.example.lifeplus.domain.VideoData
@@ -25,13 +29,30 @@ import com.google.accompanist.swiperefresh.SwipeRefresh
 import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 
 @Composable
-fun VideoListView(videoDatas: List<VideoData>, isRefreshing: Boolean, onRefresh: () -> Unit) {
+fun VideoListView(videoDatas: () -> List<VideoData>, isRefreshing: Boolean, onRefresh: () -> Unit) {
     SwipeRefresh(state = rememberSwipeRefreshState(isRefreshing), onRefresh = onRefresh) {
-        LazyVerticalGrid(columns = GridCells.Fixed(2), modifier = Modifier.fillMaxSize()) {
-            items(count = videoDatas.size, key = { videoDatas[it].id }, itemContent = { index ->
-                val video = videoDatas[index]
-                VideoItem(video)
-            })
+        if (videoDatas().isNotEmpty()) {
+            LazyVerticalGrid(columns = GridCells.Fixed(2), modifier = Modifier.fillMaxSize()) {
+                items(
+                    count = videoDatas().size,
+                    key = { videoDatas()[it].id },
+                    itemContent = { index ->
+                        val video = videoDatas()[index]
+                        VideoItem(video)
+                    })
+            }
+        } else {
+            Column(
+                modifier = Modifier.fillMaxSize(),
+                verticalArrangement = Arrangement.Center
+            ) {
+                Text(
+                    text = "木門出品，必是精品",
+                    modifier = Modifier.fillMaxWidth(),
+                    textAlign = TextAlign.Center,
+                    fontSize = 30.sp
+                )
+            }
         }
     }
 
