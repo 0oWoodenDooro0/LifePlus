@@ -20,21 +20,25 @@ import androidx.compose.ui.unit.dp
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TopBar() {
+fun TopBar(search: (String) -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .padding(5.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        var text by rememberSaveable { mutableStateOf("") }
+        var query by rememberSaveable { mutableStateOf("") }
         var active by rememberSaveable { mutableStateOf(false) }
         SearchBar(
             active = active,
-            query = text,
+            query = query,
             onActiveChange = { active = it },
-            onQueryChange = { text = it },
-            onSearch = { active = false },
+            onQueryChange = { query = it },
+            onSearch = {
+                search(query)
+                query = ""
+                active = false
+            },
             placeholder = { Text("Search") },
             leadingIcon = {
                 Icon(

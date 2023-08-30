@@ -31,7 +31,7 @@ class MainActivity : ComponentActivity() {
             LifePlusTheme {
                 Scaffold(
                     topBar = {
-                        TopBar()
+                        TopBar(search = { query -> viewModel.search(query) })
                     }
                 ) { paddingValues ->
                     Surface(

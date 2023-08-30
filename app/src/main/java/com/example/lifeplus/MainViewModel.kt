@@ -27,7 +27,7 @@ class MainViewModel : ViewModel() {
     private val _isRefreshing = mutableStateOf(false)
     val isRefreshing: State<Boolean> = _isRefreshing
 
-    private fun load() {
+    private fun home() {
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 webClient = WebClient(BrowserVersion.CHROME)
@@ -53,7 +53,7 @@ class MainViewModel : ViewModel() {
     }
 
     init {
-        load()
+        home()
     }
 
     fun onRefresh() {
@@ -80,6 +80,31 @@ class MainViewModel : ViewModel() {
                 e.printStackTrace()
             }
             _isRefreshing.value = false
+        }
+    }
+
+    fun search(query: String){
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                webClient = WebClient(BrowserVersion.CHROME)
+                webClient.options.isCssEnabled = false
+                webClient.options.isThrowExceptionOnScriptError = false
+                htmlPage = webClient.getPage("https://www.pornhub.com/video/search?search=$query")
+                val doc: Document = Jsoup.parse(htmlPage.asXml())
+                val vidHtml = doc.select("#videoSearchResult")
+                val vidData = vidHtml.select("div.phimage")
+                _videoDatas.clear()
+                vidData.forEachIndexed { index, element ->
+                    val title = element.getElementsByTag("img").attr("title")
+                    val imageUrl = element.getElementsByTag("img").attr("src")
+                    val detailUrl = baseUrl + element.select("a")[0].attr("href")
+                    val previewUrl = element.getElementsByTag("img").attr("data-mediabook")
+                    val videoData = VideoData(index, title, imageUrl, previewUrl, detailUrl)
+                    _videoDatas.add(videoData)
+                }
+            } catch (e: IOException) {
+                e.printStackTrace()
+            }
         }
     }
 
