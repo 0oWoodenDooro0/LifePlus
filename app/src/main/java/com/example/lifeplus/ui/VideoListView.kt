@@ -12,7 +12,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
@@ -40,7 +40,7 @@ fun VideoListView(videoDatas: List<VideoData>, isRefreshing: Boolean, onRefresh:
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun VideoItem(videoData: VideoData) {
-    var showVideoDialog by remember { mutableStateOf(false) }
+    var showVideoDialog by rememberSaveable { mutableStateOf(false) }
     Card(
         modifier = Modifier
             .fillMaxSize()

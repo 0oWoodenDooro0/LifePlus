@@ -8,13 +8,16 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.sp
+import com.example.lifeplus.ui.TopBar
 import com.example.lifeplus.ui.VideoListView
 import com.example.lifeplus.ui.theme.LifePlusTheme
 
@@ -26,30 +29,37 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             LifePlusTheme {
-                // A surface container using the 'background' color from the theme
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
-                ) {
-                    val isRefreshing by viewModel.isRefreshing
-                    val videoDatas = viewModel.videoDatas
-                    if (viewModel.videoDatas.isNotEmpty()) {
-                        VideoListView(
-                            videoDatas = videoDatas,
-                            isRefreshing = isRefreshing,
-                            onRefresh = { viewModel.onRefresh() }
-                        )
-                    } else {
-                        Column(
-                            modifier = Modifier.fillMaxSize(),
-                            verticalArrangement = Arrangement.Center
-                        ) {
-                            Text(
-                                text = "木門出品，必是精品",
-                                modifier = Modifier.fillMaxWidth(),
-                                textAlign = TextAlign.Center,
-                                fontSize = 30.sp
+                Scaffold(
+                    topBar = {
+                        TopBar()
+                    }
+                ) { paddingValues ->
+                    Surface(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(paddingValues),
+                        color = MaterialTheme.colorScheme.background
+                    ) {
+                        val isRefreshing by viewModel.isRefreshing
+                        val videoDatas = viewModel.videoDatas
+                        if (viewModel.videoDatas.isNotEmpty()) {
+                            VideoListView(
+                                videoDatas = videoDatas,
+                                isRefreshing = isRefreshing,
+                                onRefresh = { viewModel.onRefresh() }
                             )
+                        } else {
+                            Column(
+                                modifier = Modifier.fillMaxSize(),
+                                verticalArrangement = Arrangement.Center
+                            ) {
+                                Text(
+                                    text = "木門出品，必是精品",
+                                    modifier = Modifier.fillMaxWidth(),
+                                    textAlign = TextAlign.Center,
+                                    fontSize = 30.sp
+                                )
+                            }
                         }
                     }
                 }
