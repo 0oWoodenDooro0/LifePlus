@@ -1,7 +1,9 @@
 package com.example.lifeplus
 
+import android.net.Uri
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.compose.foundation.layout.fillMaxSize
@@ -15,6 +17,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.lifeplus.ui.FullScreenVideoPlayer
 import com.example.lifeplus.ui.TopBar
 import com.example.lifeplus.ui.VideoListView
 import com.example.lifeplus.ui.theme.LifePlusTheme
@@ -36,37 +40,45 @@ class MainActivity : ComponentActivity() {
                         color = Color.Transparent
                     )
                 }
-                Scaffold(
-                    topBar = {
-                        val searchHistorys by viewModel.searchHistorys.observeAsState()
-                        val isSearching by viewModel.isSearching
-                        TopBar(
-                            search = { query -> viewModel.search(query) },
-                            searchHistorys = searchHistorys,
-                            isSearching = isSearching
-                        )
+                val fullScreenVideoData by viewModel.fullScreenVideoData.collectAsStateWithLifecycle()
+                if (fullScreenVideoData.isFullScreen) {
+                    FullScreenVideoPlayer(uri = Uri.parse(fullScreenVideoData.videoUrl))
+                } else {
+                    Scaffold(
+                        topBar = {
+                            val searchHistorys by viewModel.searchHistorys.observeAsState()
+                            val isSearching by viewModel.isSearching
+                            TopBar(
+                                search = { query -> viewModel.search(query) },
+                                searchHistorys = searchHistorys,
+                                isSearching = isSearching
+                            )
+                        }
+                    ) { paddingValues ->
+                        Surface(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(paddingValues),
+                            color = MaterialTheme.colorScheme.background
+                        ) {
+                            val isRefreshing by viewModel.isRefreshing
+                            val videoDatas by viewModel.videoDatas.collectAsState()
+                            VideoListView(
+                                videoDatas = videoDatas,
+                                isRefreshing = isRefreshing,
+                                onRefresh = { viewModel.onRefresh() },
+                                getVideoUrl = { videoData -> viewModel.getVideoSource(videoData) },
+                                playVideoFullScreen = { videoUrl ->
+                                    viewModel.playVideoFullScreen(
+                                        videoUrl
+                                    )
+                                }
+                            )
+                        }
                     }
-                ) { paddingValues ->
-                    Surface(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(paddingValues),
-                        color = MaterialTheme.colorScheme.background
-                    ) {
-                        val isRefreshing by viewModel.isRefreshing
-                        val videoDatas by viewModel.videoDatas.collectAsState()
-                        VideoListView(
-                            videoDatas = videoDatas,
-                            isRefreshing = isRefreshing,
-                            onRefresh = { viewModel.onRefresh() },
-                            getVideoUrl = { videoData -> viewModel.getVideoSource(videoData) },
-                            playVideoFullScreen = { videoUrl ->
-                                viewModel.playVideoFullScreen(
-                                    videoUrl
-                                )
-                            }
-                        )
-                    }
+                }
+                BackHandler(enabled = fullScreenVideoData.isFullScreen) {
+                    viewModel.fullScreenOnDispose()
                 }
             }
         }
