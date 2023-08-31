@@ -1,5 +1,6 @@
 package com.example.lifeplus.ui
 
+import android.annotation.SuppressLint
 import android.net.Uri
 import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
@@ -75,6 +76,7 @@ fun VideoDialog(onDismiss: () -> Unit, videoData: VideoData) {
     }
 }
 
+@SuppressLint("OpaqueUnitKey")
 @Composable
 @androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
 fun VideoPlayer(uri: Uri) {
