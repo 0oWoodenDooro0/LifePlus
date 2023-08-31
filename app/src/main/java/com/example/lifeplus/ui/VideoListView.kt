@@ -33,7 +33,8 @@ fun VideoListView(
     videoDatas: List<VideoData>?,
     isRefreshing: Boolean,
     onRefresh: () -> Unit,
-    getVideoUrl: (VideoData) -> Unit
+    getVideoUrl: (VideoData) -> Unit,
+    playVideoFullScreen: (String) -> Unit
 ) {
     SwipeRefresh(state = rememberSwipeRefreshState(isRefreshing), onRefresh = onRefresh) {
         videoDatas?.let {
@@ -45,7 +46,9 @@ fun VideoListView(
                         val video = videoDatas[index]
                         VideoItem(
                             videoData = video,
-                            getVideoUrl = { videoData -> getVideoUrl(videoData) })
+                            getVideoUrl = { videoData -> getVideoUrl(videoData) },
+                            playVideoFullScreen = playVideoFullScreen
+                        )
                     })
             }
         } ?: Column(
@@ -60,12 +63,15 @@ fun VideoListView(
             )
         }
     }
-
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun VideoItem(videoData: VideoData, getVideoUrl: (VideoData) -> Unit) {
+fun VideoItem(
+    videoData: VideoData,
+    getVideoUrl: (VideoData) -> Unit,
+    playVideoFullScreen: (String) -> Unit
+) {
     var showVideoDialog by rememberSaveable { mutableStateOf(false) }
     Card(
         modifier = Modifier
@@ -94,7 +100,8 @@ fun VideoItem(videoData: VideoData, getVideoUrl: (VideoData) -> Unit) {
             onDismiss = {
                 showVideoDialog = false
             },
-            videoData = videoData
+            videoData = videoData,
+            playVideoFullScreen = playVideoFullScreen
         )
     }
 }

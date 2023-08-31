@@ -3,15 +3,18 @@ package com.example.lifeplus
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.asLiveData
 import androidx.lifecycle.viewModelScope
 import com.example.lifeplus.database.SearchHistoryRepository
+import com.example.lifeplus.domain.FullScreenVideoData
 import com.example.lifeplus.domain.SearchHistoryData
 import com.example.lifeplus.domain.VideoData
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.htmlunit.BrowserVersion
 import org.htmlunit.WebClient
@@ -31,13 +34,17 @@ class MainViewModel(private val searchHistoryRepository: SearchHistoryRepository
     val searchHistorys: LiveData<List<SearchHistoryData>> =
         searchHistoryRepository.searchHistorys.asLiveData()
 
-    val videoDatas = MutableLiveData<List<VideoData>>()
+    private val _videoDatas = MutableStateFlow<List<VideoData>>(emptyList())
+    val videoDatas = _videoDatas.asStateFlow()
 
     private val _isRefreshing = mutableStateOf(false)
     val isRefreshing: State<Boolean> = _isRefreshing
 
     private val _isSearching = mutableStateOf(false)
     val isSearching: State<Boolean> = _isSearching
+
+    private val _fullScreenVideoDatas = MutableStateFlow(FullScreenVideoData())
+    val fullScreenVideoData = _fullScreenVideoDatas.asStateFlow()
 
     private fun home() {
         viewModelScope.launch(Dispatchers.IO) {
@@ -58,7 +65,7 @@ class MainViewModel(private val searchHistoryRepository: SearchHistoryRepository
                 val previewUrl = element.getElementsByTag("img").attr("data-mediabook")
                 VideoData(index, title, imageUrl, previewUrl, detailUrl)
             }
-            videoDatas.postValue(vidDatas)
+            _videoDatas.value = vidDatas
         }
     }
 
@@ -79,7 +86,7 @@ class MainViewModel(private val searchHistoryRepository: SearchHistoryRepository
     fun onRefresh() {
         viewModelScope.launch(Dispatchers.IO) {
             _isRefreshing.value = true
-            videoDatas.postValue(emptyList())
+            _videoDatas.value = emptyList()
             try {
                 htmlPage = webClient.getPage(url)
             } catch (e: IOException) {
@@ -94,7 +101,7 @@ class MainViewModel(private val searchHistoryRepository: SearchHistoryRepository
                 val previewUrl = element.getElementsByTag("img").attr("data-mediabook")
                 VideoData(index, title, imageUrl, previewUrl, detailUrl)
             }
-            videoDatas.postValue(vidDatas)
+            _videoDatas.value = vidDatas
             _isRefreshing.value = false
         }
     }
@@ -102,7 +109,7 @@ class MainViewModel(private val searchHistoryRepository: SearchHistoryRepository
     fun search(query: String) {
         viewModelScope.launch(Dispatchers.IO) {
             _isSearching.value = true
-            videoDatas.postValue(emptyList())
+            _videoDatas.value = emptyList()
             url = "https://www.pornhub.com/video/search?search=$query"
             try {
                 htmlPage = webClient.getPage(url)
@@ -119,7 +126,7 @@ class MainViewModel(private val searchHistoryRepository: SearchHistoryRepository
                 val previewUrl = element.getElementsByTag("img").attr("data-mediabook")
                 VideoData(index, title, imageUrl, previewUrl, detailUrl)
             }
-            videoDatas.postValue(vidDatas)
+            _videoDatas.value = vidDatas
             upsert(SearchHistoryData(query))
             _isSearching.value = false
         }
@@ -133,18 +140,37 @@ class MainViewModel(private val searchHistoryRepository: SearchHistoryRepository
             } catch (e: IOException) {
                 e.printStackTrace()
             }
-            webClient.waitForBackgroundJavaScript(5000)
+            webClient.waitForBackgroundJavaScript(2000)
             val vidId =
                 htmlPage.executeJavaScript("VIDEO_SHOW['video_id']").javaScriptResult
-            vidId?.let {
-                var id = it.toString()
+            vidId?.let { vid ->
+                var id = vid.toString()
                 id = id.replace(".", "")
                 id = id.replace("E8", "")
                 val vidUrl =
                     htmlPage.executeJavaScript("flashvars_$id['mediaDefinitions'][flashvars_$id['mediaDefinitions'].length - 2]['videoUrl']").javaScriptResult.toString()
-                videoData.videoUrl = vidUrl
+                _videoDatas.update { videos ->
+                    videos.map { video ->
+                        if (video.id == videoData.id) VideoData(
+                            video.id,
+                            video.title,
+                            video.imageUrl,
+                            video.previewUrl,
+                            video.detailUrl,
+                            vidUrl
+                        ) else video
+                    }
+                }
             }
         }
+    }
+
+    fun playVideoFullScreen(videoUrl: String) {
+        _fullScreenVideoDatas.value = FullScreenVideoData(true, videoUrl)
+    }
+
+    fun fullScreenOnDispose() {
+        _fullScreenVideoDatas.value = FullScreenVideoData()
     }
 
     class MainViewModelFactory(private val searchHistoryRepository: SearchHistoryRepository) :
@@ -156,7 +182,6 @@ class MainViewModel(private val searchHistoryRepository: SearchHistoryRepository
             }
             throw IllegalArgumentException("Unknown VieModel Class")
         }
-
     }
 
 }

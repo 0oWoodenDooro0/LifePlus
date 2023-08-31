@@ -40,7 +40,11 @@ import com.example.lifeplus.domain.VideoData
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun VideoDialog(onDismiss: () -> Unit, videoData: VideoData) {
+fun VideoDialog(
+    onDismiss: () -> Unit,
+    videoData: VideoData,
+    playVideoFullScreen: (String) -> Unit
+) {
     Dialog(onDismissRequest = onDismiss) {
         Surface(
             modifier = Modifier.wrapContentHeight(),
@@ -51,6 +55,7 @@ fun VideoDialog(onDismiss: () -> Unit, videoData: VideoData) {
                 modifier = Modifier.wrapContentHeight(),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
+                val context = LocalContext.current
                 Text(
                     text = videoData.title,
                     modifier = Modifier
@@ -61,7 +66,9 @@ fun VideoDialog(onDismiss: () -> Unit, videoData: VideoData) {
                 )
                 VideoPlayer(uri = Uri.parse(videoData.previewUrl))
                 Button(
-                    onClick = { /*TODO*/ },
+                    onClick = {
+                        videoData.videoUrl?.let(playVideoFullScreen)
+                    },
                     modifier = Modifier.padding(horizontal = 20.dp, vertical = 5.dp),
                     enabled = !videoData.videoUrl.isNullOrEmpty()
                 ) {
@@ -76,8 +83,8 @@ fun VideoDialog(onDismiss: () -> Unit, videoData: VideoData) {
     }
 }
 
-@SuppressLint("OpaqueUnitKey")
 @Composable
+@SuppressLint("OpaqueUnitKey")
 @androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
 fun VideoPlayer(uri: Uri) {
     val context = LocalContext.current
@@ -121,5 +128,4 @@ fun VideoPlayer(uri: Uri) {
     ) {
         onDispose { exoPlayer.release() }
     }
-
 }

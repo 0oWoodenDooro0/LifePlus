@@ -10,6 +10,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Modifier
@@ -53,12 +54,17 @@ class MainActivity : ComponentActivity() {
                         color = MaterialTheme.colorScheme.background
                     ) {
                         val isRefreshing by viewModel.isRefreshing
-                        val videoDatas by viewModel.videoDatas.observeAsState()
+                        val videoDatas by viewModel.videoDatas.collectAsState()
                         VideoListView(
                             videoDatas = videoDatas,
                             isRefreshing = isRefreshing,
                             onRefresh = { viewModel.onRefresh() },
-                            getVideoUrl = {videoData -> viewModel.getVideoSource(videoData)}
+                            getVideoUrl = { videoData -> viewModel.getVideoSource(videoData) },
+                            playVideoFullScreen = { videoUrl ->
+                                viewModel.playVideoFullScreen(
+                                    videoUrl
+                                )
+                            }
                         )
                     }
                 }
