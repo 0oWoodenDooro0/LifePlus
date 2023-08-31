@@ -44,11 +44,12 @@ class MainActivity : ComponentActivity() {
                         color = MaterialTheme.colorScheme.background
                     ) {
                         val isRefreshing by viewModel.isRefreshing
-                        val videoDatas = { viewModel.videoDatas }
+                        val videoDatas by viewModel.videoDatas.observeAsState()
                         VideoListView(
                             videoDatas = videoDatas,
                             isRefreshing = isRefreshing,
-                            onRefresh = { viewModel.onRefresh() }
+                            onRefresh = { viewModel.onRefresh() },
+                            getVideoUrl = {videoData -> viewModel.getVideoSource(videoData)}
                         )
                     }
                 }

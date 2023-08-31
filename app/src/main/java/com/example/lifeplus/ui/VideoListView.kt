@@ -29,30 +29,35 @@ import com.google.accompanist.swiperefresh.SwipeRefresh
 import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 
 @Composable
-fun VideoListView(videoDatas: () -> List<VideoData>, isRefreshing: Boolean, onRefresh: () -> Unit) {
+fun VideoListView(
+    videoDatas: List<VideoData>?,
+    isRefreshing: Boolean,
+    onRefresh: () -> Unit,
+    getVideoUrl: (VideoData) -> Unit
+) {
     SwipeRefresh(state = rememberSwipeRefreshState(isRefreshing), onRefresh = onRefresh) {
-        if (videoDatas().isNotEmpty()) {
+        videoDatas?.let {
             LazyVerticalGrid(columns = GridCells.Fixed(2), modifier = Modifier.fillMaxSize()) {
                 items(
-                    count = videoDatas().size,
-                    key = { videoDatas()[it].id },
+                    count = videoDatas.size,
+                    key = { videoDatas[it].id },
                     itemContent = { index ->
-                        val video = videoDatas()[index]
-                        VideoItem(video)
+                        val video = videoDatas[index]
+                        VideoItem(
+                            videoData = video,
+                            getVideoUrl = { videoData -> getVideoUrl(videoData) })
                     })
             }
-        } else {
-            Column(
-                modifier = Modifier.fillMaxSize(),
-                verticalArrangement = Arrangement.Center
-            ) {
-                Text(
-                    text = "木門出品，必是精品",
-                    modifier = Modifier.fillMaxWidth(),
-                    textAlign = TextAlign.Center,
-                    fontSize = 30.sp
-                )
-            }
+        } ?: Column(
+            modifier = Modifier.fillMaxSize(),
+            verticalArrangement = Arrangement.Center
+        ) {
+            Text(
+                text = "木門出品，必是精品",
+                modifier = Modifier.fillMaxWidth(),
+                textAlign = TextAlign.Center,
+                fontSize = 30.sp
+            )
         }
     }
 
@@ -60,7 +65,7 @@ fun VideoListView(videoDatas: () -> List<VideoData>, isRefreshing: Boolean, onRe
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun VideoItem(videoData: VideoData) {
+fun VideoItem(videoData: VideoData, getVideoUrl: (VideoData) -> Unit) {
     var showVideoDialog by rememberSaveable { mutableStateOf(false) }
     Card(
         modifier = Modifier
@@ -69,6 +74,7 @@ fun VideoItem(videoData: VideoData) {
         elevation = CardDefaults.cardElevation(defaultElevation = 10.dp),
         onClick = {
             showVideoDialog = true
+            getVideoUrl(videoData)
         }
     ) {
         AsyncImage(

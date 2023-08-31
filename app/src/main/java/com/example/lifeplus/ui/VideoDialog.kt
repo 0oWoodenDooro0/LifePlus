@@ -61,7 +61,8 @@ fun VideoDialog(onDismiss: () -> Unit, videoData: VideoData) {
                 VideoPlayer(uri = Uri.parse(videoData.previewUrl))
                 Button(
                     onClick = { /*TODO*/ },
-                    modifier = Modifier.padding(horizontal = 20.dp, vertical = 5.dp)
+                    modifier = Modifier.padding(horizontal = 20.dp, vertical = 5.dp),
+                    enabled = !videoData.videoUrl.isNullOrEmpty()
                 ) {
                     Text(
                         text = "Watch",
