@@ -58,17 +58,17 @@ class MainViewModel(private val searchHistoryRepository: SearchHistoryRepository
                     when (_selectedPageIndex.value) {
                         0 -> {
                             url = baseUrl
-                            cssQuery = ".container div.phimage"
+                            cssQuery = ".container li.pcVideoListItem.js-pop.videoblock"
                         }
 
                         1 -> {
                             url = "$baseUrl/recommended"
-                            cssQuery = ".container div.phimage"
+                            cssQuery = ".container li.pcVideoListItem.js-pop.videoblock"
                         }
 
                         2 -> {
                             url = "$baseUrl/video"
-                            cssQuery = ".container div.phimage"
+                            cssQuery = ".container li.pcVideoListItem.js-pop.videoblock"
                         }
                     }
                 }
@@ -87,12 +87,20 @@ class MainViewModel(private val searchHistoryRepository: SearchHistoryRepository
         }
         val doc: Document = Jsoup.parse(htmlPage.asXml())
         val vidData = doc.select(cssQuery)
-        val vidDatas: List<VideoData> = vidData.mapIndexed { index, element ->
-            val title = element.getElementsByTag("img").attr("title")
-            val imageUrl = element.getElementsByTag("img").attr("src")
-            val detailUrl = baseUrl + element.select("a")[0].attr("href")
-            val previewUrl = element.getElementsByTag("img").attr("data-mediabook")
-            VideoData(index, title, imageUrl, previewUrl, detailUrl)
+        val vidDatas: List<VideoData> = vidData.map { element ->
+            val imageData = element.select("div.phimage")[0]
+            val id = imageData.getElementsByTag("img").attr("data-video-id").toInt()
+            val title = imageData.getElementsByTag("img").attr("title")
+            val imageUrl = imageData.getElementsByTag("img").attr("src")
+            val detailUrl = baseUrl + imageData.select("a")[0].attr("href")
+            val previewUrl = imageData.getElementsByTag("img").attr("data-mediabook")
+            val duration = imageData.select("div.marker-overlays.js-noFade")[0].text()
+            val videoDetail = element.select("div.thumbnail-info-wrapper.clearfix")[0]
+            val modelUrl = baseUrl + videoDetail.select("a")[0].attr("href")
+            val views = videoDetail.select("span.views")[0].text()
+            val rating = videoDetail.select("div.value")[0].text()
+            val added = videoDetail.select("var.added")[0].text()
+            VideoData(id, title, imageUrl, detailUrl, previewUrl, duration, modelUrl, views, rating, added)
         }
         _videoDatas.value = vidDatas
     }
@@ -129,25 +137,23 @@ class MainViewModel(private val searchHistoryRepository: SearchHistoryRepository
                 e.printStackTrace()
             }
             webClient.waitForBackgroundJavaScript(2000)
-            val vidId =
-                htmlPage.executeJavaScript("VIDEO_SHOW['video_id']").javaScriptResult
-            vidId?.let { vid ->
-                var id = vid.toString()
-                id = id.replace(".", "")
-                id = id.replace("E8", "")
-                val vidUrl =
-                    htmlPage.executeJavaScript("flashvars_$id['mediaDefinitions'][flashvars_$id['mediaDefinitions'].length - 2]['videoUrl']").javaScriptResult.toString()
-                _videoDatas.update { videos ->
-                    videos.map { video ->
-                        if (video.id == videoData.id) VideoData(
-                            video.id,
-                            video.title,
-                            video.imageUrl,
-                            video.previewUrl,
-                            video.detailUrl,
-                            vidUrl
-                        ) else video
-                    }
+            val vidUrl =
+                htmlPage.executeJavaScript("flashvars_${videoData.id}['mediaDefinitions'][flashvars_${videoData.id}['mediaDefinitions'].length - 2]['videoUrl']").javaScriptResult.toString()
+            _videoDatas.update { videos ->
+                videos.map { video ->
+                    if (video.id == videoData.id) VideoData(
+                        video.id,
+                        video.title,
+                        video.imageUrl,
+                        video.detailUrl,
+                        video.previewUrl,
+                        video.duration,
+                        video.modelUrl,
+                        video.views,
+                        video.rating,
+                        video.added,
+                        vidUrl
+                    ) else video
                 }
             }
         }
