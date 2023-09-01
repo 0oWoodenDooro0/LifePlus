@@ -1,7 +1,5 @@
 package com.example.lifeplus
 
-import androidx.compose.runtime.State
-import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -10,6 +8,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.lifeplus.database.SearchHistoryRepository
 import com.example.lifeplus.domain.FullScreenVideoData
 import com.example.lifeplus.domain.SearchHistoryData
+import com.example.lifeplus.domain.Site
 import com.example.lifeplus.domain.VideoData
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -31,49 +30,78 @@ class MainViewModel(private val searchHistoryRepository: SearchHistoryRepository
     private lateinit var htmlPage: HtmlPage
     private lateinit var cssQuery: String
 
+    private val _selectedSite = MutableStateFlow<Site>(Site.PornHub())
+    val selectedSite = _selectedSite.asStateFlow()
+
+    private val _selectedPageIndex = MutableStateFlow(0)
+    val selectedPageIndex = _selectedPageIndex.asStateFlow()
+
     val searchHistorys: LiveData<List<SearchHistoryData>> =
         searchHistoryRepository.searchHistorys.asLiveData()
 
     private val _videoDatas = MutableStateFlow<List<VideoData>>(emptyList())
     val videoDatas = _videoDatas.asStateFlow()
 
-    private val _isRefreshing = mutableStateOf(false)
-    val isRefreshing: State<Boolean> = _isRefreshing
-
-    private val _isSearching = mutableStateOf(false)
-    val isSearching: State<Boolean> = _isSearching
+    private val _isLoading = MutableStateFlow(false)
+    val isLoading = _isLoading.asStateFlow()
 
     private val _fullScreenVideoDatas = MutableStateFlow(FullScreenVideoData())
     val fullScreenVideoData = _fullScreenVideoDatas.asStateFlow()
 
-    private fun home() {
+    fun changePage(pageIndex: Int) {
+        _selectedPageIndex.value = pageIndex
         viewModelScope.launch(Dispatchers.IO) {
-            baseUrl = "https://pornhub.com"
-            url = "$baseUrl/recommended"
-            try {
-                htmlPage = webClient.getPage(url)
-            } catch (e: IOException) {
-                e.printStackTrace()
+            _isLoading.value = true
+            when (_selectedSite.value) {
+                is Site.PornHub -> {
+                    baseUrl = "https://pornhub.com"
+                    when (_selectedPageIndex.value) {
+                        0 -> {
+                            url = baseUrl
+                            cssQuery = ".container div.phimage"
+                        }
+
+                        1 -> {
+                            url = "$baseUrl/recommended"
+                            cssQuery = ".container div.phimage"
+                        }
+
+                        2 -> {
+                            url = "$baseUrl/video"
+                            cssQuery = ".container div.phimage"
+                        }
+                    }
+                }
             }
-            val doc: Document = Jsoup.parse(htmlPage.asXml())
-            cssQuery = "#recommendedListings div.phimage"
-            val vidData = doc.select(cssQuery)
-            val vidDatas: List<VideoData> = vidData.mapIndexed { index, element ->
-                val title = element.getElementsByTag("img").attr("title")
-                val imageUrl = element.getElementsByTag("img").attr("src")
-                val detailUrl = baseUrl + element.select("a")[0].attr("href")
-                val previewUrl = element.getElementsByTag("img").attr("data-mediabook")
-                VideoData(index, title, imageUrl, previewUrl, detailUrl)
-            }
-            _videoDatas.value = vidDatas
+            loadPage(url, cssQuery)
+            _isLoading.value = false
         }
+    }
+
+    private fun loadPage(url: String, cssQuery: String) {
+        _videoDatas.value = emptyList()
+        try {
+            htmlPage = webClient.getPage(url)
+        } catch (e: IOException) {
+            e.printStackTrace()
+        }
+        val doc: Document = Jsoup.parse(htmlPage.asXml())
+        val vidData = doc.select(cssQuery)
+        val vidDatas: List<VideoData> = vidData.mapIndexed { index, element ->
+            val title = element.getElementsByTag("img").attr("title")
+            val imageUrl = element.getElementsByTag("img").attr("src")
+            val detailUrl = baseUrl + element.select("a")[0].attr("href")
+            val previewUrl = element.getElementsByTag("img").attr("data-mediabook")
+            VideoData(index, title, imageUrl, previewUrl, detailUrl)
+        }
+        _videoDatas.value = vidDatas
     }
 
     init {
         webClient.options.isCssEnabled = false
         webClient.options.isThrowExceptionOnScriptError = false
         webClient.options.isThrowExceptionOnFailingStatusCode = false
-        home()
+        changePage(0)
     }
 
     private fun upsert(searchHistory: SearchHistoryData) = viewModelScope.launch {
@@ -83,52 +111,12 @@ class MainViewModel(private val searchHistoryRepository: SearchHistoryRepository
         searchHistoryRepository.upsert(searchHistory)
     }
 
-    fun onRefresh() {
-        viewModelScope.launch(Dispatchers.IO) {
-            _isRefreshing.value = true
-            _videoDatas.value = emptyList()
-            try {
-                htmlPage = webClient.getPage(url)
-            } catch (e: IOException) {
-                e.printStackTrace()
-            }
-            val doc: Document = Jsoup.parse(htmlPage.asXml())
-            val vidData = doc.select(cssQuery)
-            val vidDatas: List<VideoData> = vidData.mapIndexed { index, element ->
-                val title = element.getElementsByTag("img").attr("title")
-                val imageUrl = element.getElementsByTag("img").attr("src")
-                val detailUrl = baseUrl + element.select("a")[0].attr("href")
-                val previewUrl = element.getElementsByTag("img").attr("data-mediabook")
-                VideoData(index, title, imageUrl, previewUrl, detailUrl)
-            }
-            _videoDatas.value = vidDatas
-            _isRefreshing.value = false
-        }
-    }
-
     fun search(query: String) {
+        url = "https://www.pornhub.com/video/search?search=$query"
+        cssQuery = "#videoSearchResult div.phimage"
         viewModelScope.launch(Dispatchers.IO) {
-            _isSearching.value = true
-            _videoDatas.value = emptyList()
-            url = "https://www.pornhub.com/video/search?search=$query"
-            try {
-                htmlPage = webClient.getPage(url)
-            } catch (e: IOException) {
-                e.printStackTrace()
-            }
-            val doc: Document = Jsoup.parse(htmlPage.asXml())
-            cssQuery = "#videoSearchResult div.phimage"
-            val vidData = doc.select(cssQuery)
-            val vidDatas: List<VideoData> = vidData.mapIndexed { index, element ->
-                val title = element.getElementsByTag("img").attr("title")
-                val imageUrl = element.getElementsByTag("img").attr("src")
-                val detailUrl = baseUrl + element.select("a")[0].attr("href")
-                val previewUrl = element.getElementsByTag("img").attr("data-mediabook")
-                VideoData(index, title, imageUrl, previewUrl, detailUrl)
-            }
-            _videoDatas.value = vidDatas
+            loadPage(url, cssQuery)
             upsert(SearchHistoryData(query))
-            _isSearching.value = false
         }
     }
 

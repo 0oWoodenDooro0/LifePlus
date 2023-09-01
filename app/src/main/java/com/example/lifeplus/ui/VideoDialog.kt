@@ -22,6 +22,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.window.Dialog
 import androidx.media3.common.MediaItem
@@ -56,7 +57,8 @@ fun VideoDialog(
                         .fillMaxWidth()
                         .padding(5.dp)
                         .basicMarquee(),
-                    textAlign = TextAlign.Center
+                    textAlign = TextAlign.Center,
+                    fontSize = 20.sp
                 )
                 VideoPlayer(uri = Uri.parse(videoData.previewUrl))
                 Button(
@@ -67,7 +69,7 @@ fun VideoDialog(
                     enabled = !videoData.videoUrl.isNullOrEmpty()
                 ) {
                     Text(
-                        text = "Watch",
+                        text = if (!videoData.videoUrl.isNullOrEmpty()) "Watch" else "Preparing",
                         modifier = Modifier.fillMaxWidth(),
                         textAlign = TextAlign.Center
                     )

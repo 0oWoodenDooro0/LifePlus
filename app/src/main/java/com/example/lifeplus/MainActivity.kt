@@ -6,11 +6,15 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.ScrollableTabRow
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Tab
+import androidx.compose.material3.Text
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -41,38 +45,45 @@ class MainActivity : ComponentActivity() {
                     )
                 }
                 val fullScreenVideoData by viewModel.fullScreenVideoData.collectAsStateWithLifecycle()
+                val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
                 if (fullScreenVideoData.isFullScreen) {
                     FullScreenVideoPlayer(uri = Uri.parse(fullScreenVideoData.videoUrl))
                 } else {
-                    Scaffold(
-                        topBar = {
-                            val searchHistorys by viewModel.searchHistorys.observeAsState()
-                            val isSearching by viewModel.isSearching
+                    Scaffold(topBar = {
+                        val searchHistorys by viewModel.searchHistorys.observeAsState()
+                        Column {
                             TopBar(
                                 search = { query -> viewModel.search(query) },
                                 searchHistorys = searchHistorys,
-                                isSearching = isSearching
+                                isSearching = isLoading
                             )
+                            val selectedSite by viewModel.selectedSite.collectAsStateWithLifecycle()
+                            val selectedPageIndex by viewModel.selectedPageIndex.collectAsStateWithLifecycle()
+                            ScrollableTabRow(selectedTabIndex = selectedPageIndex) {
+                                selectedSite.pages.forEachIndexed { index, page ->
+                                    Tab(
+                                        text = { Text(text = page.name) },
+                                        selected = selectedPageIndex == index,
+                                        onClick = { viewModel.changePage(index) }
+                                    )
+                                }
+                            }
                         }
-                    ) { paddingValues ->
+                    }) { paddingValues ->
                         Surface(
                             modifier = Modifier
                                 .fillMaxSize()
                                 .padding(paddingValues),
                             color = MaterialTheme.colorScheme.background
                         ) {
-                            val isRefreshing by viewModel.isRefreshing
                             val videoDatas by viewModel.videoDatas.collectAsState()
                             VideoListView(
                                 videoDatas = videoDatas,
-                                isRefreshing = isRefreshing,
-                                onRefresh = { viewModel.onRefresh() },
                                 getVideoUrl = { videoData -> viewModel.getVideoSource(videoData) },
                                 playVideoFullScreen = { videoUrl ->
-                                    viewModel.playVideoFullScreen(
-                                        videoUrl
-                                    )
-                                }
+                                    viewModel.playVideoFullScreen(videoUrl)
+                                },
+                                isLoading = isLoading
                             )
                         }
                     }
