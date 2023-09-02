@@ -27,15 +27,15 @@ import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.hls.HlsMediaSource
 import androidx.media3.ui.AspectRatioFrameLayout
 import androidx.media3.ui.PlayerView
+import com.example.lifeplus.OnLifecycleEvent
 
 @Composable
-@SuppressLint("OpaqueUnitKey")
+@SuppressLint("OpaqueUnitKey", "SourceLockedOrientationActivity")
 @androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
-fun FullScreenVideoPlayer(uri: Uri) {
+fun FullScreenVideoPlayer(uri: Uri, position: Long, setPlayerPosition: (Long) -> Unit) {
     val context = LocalContext.current
     val activity = context as Activity
-    val originalOrientation = activity.requestedOrientation
-    activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
+    activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
     WindowCompat.setDecorFitsSystemWindows(activity.window, false)
     if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) {
         activity.window.addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN)
@@ -55,6 +55,7 @@ fun FullScreenVideoPlayer(uri: Uri) {
                 val source = hlsDataSourceFactory.createMediaSource(MediaItem.fromUri(uri))
                 setMediaSource(source)
                 playWhenReady = true
+                seekTo(position)
                 prepare()
             }
     }
@@ -78,8 +79,9 @@ fun FullScreenVideoPlayer(uri: Uri) {
     ) {
         onDispose {
             exoPlayer.playWhenReady = false
+            setPlayerPosition(exoPlayer.currentPosition)
             exoPlayer.release()
-            activity.requestedOrientation = originalOrientation
+            activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
         }
     }
 
@@ -95,8 +97,9 @@ fun FullScreenVideoPlayer(uri: Uri) {
 
             Lifecycle.Event.ON_DESTROY -> {
                 exoPlayer.playWhenReady = false
+                setPlayerPosition(exoPlayer.currentPosition)
                 exoPlayer.release()
-                activity.requestedOrientation = originalOrientation
+                activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
             }
 
             else -> Unit

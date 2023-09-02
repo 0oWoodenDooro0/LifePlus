@@ -2,12 +2,15 @@ package com.example.lifeplus.ui
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -25,29 +28,40 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.example.lifeplus.R
+import com.example.lifeplus.domain.PageData
 import com.example.lifeplus.domain.VideoData
 
 @Composable
 fun VideoListView(
-    videoDatas: List<VideoData>?,
+    videoDatas: List<VideoData>,
     getVideoUrl: (VideoData) -> Unit,
     playVideoFullScreen: (String) -> Unit,
-    isLoading: Boolean
+    isLoading: Boolean,
+    pageData: PageData,
+    changePage: (String) -> Unit
 ) {
-    videoDatas?.let {
-        if (isLoading) {
+    if (isLoading) {
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            CircularProgressIndicator(modifier = Modifier.width(64.dp))
+        }
+    }
+    else{
+        if (videoDatas.isEmpty()){
             Column(
                 modifier = Modifier.fillMaxSize(),
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                CircularProgressIndicator(modifier = Modifier.width(64.dp))
+                Text(text = "Error")
             }
         } else {
             LazyVerticalGrid(columns = GridCells.Fixed(2), modifier = Modifier.fillMaxSize()) {
-                items(
-                    count = videoDatas.size,
-                    key = { videoDatas[it].id },
+                items(count = videoDatas.size,
+                    key = { videoDatas[it].id ?: videoDatas },
                     itemContent = { index ->
                         val video = videoDatas[index]
                         VideoItem(
@@ -56,14 +70,37 @@ fun VideoListView(
                             playVideoFullScreen = playVideoFullScreen
                         )
                     })
+                item(span = { GridItemSpan(2) }) {
+                    Row {
+                        Button(
+                            onClick = {
+                                pageData.previousUrl?.let(changePage)
+                            },
+                            modifier = Modifier
+                                .fillMaxWidth(0.25f)
+                                .padding(horizontal = 10.dp),
+                            enabled = !pageData.previousUrl.isNullOrEmpty()
+                        ) {
+                            Text(text = "<")
+                        }
+                        Button(
+                            onClick = { }, modifier = Modifier.fillMaxWidth(0.25f)
+                        ) {
+                            Text(text = pageData.currentPage.toString())
+                        }
+                        Button(
+                            onClick = { pageData.nextUrl?.let(changePage) },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 10.dp),
+                            enabled = !pageData.nextUrl.isNullOrEmpty()
+                        ) {
+                            Text(text = "See More")
+                        }
+                    }
+                }
             }
         }
-    } ?: Column(
-        modifier = Modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text(text = "Error")
     }
 }
 
@@ -89,7 +126,7 @@ fun VideoItem(
             placeholder = painterResource(id = R.drawable.placeholder)
         )
         Text(
-            text = videoData.title, modifier = Modifier.padding(5.dp), maxLines = 2
+            text = videoData.title.toString(), modifier = Modifier.padding(5.dp), maxLines = 2
         )
     }
     if (showVideoDialog) {

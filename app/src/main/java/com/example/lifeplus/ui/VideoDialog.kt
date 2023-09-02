@@ -52,7 +52,7 @@ fun VideoDialog(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
-                    text = videoData.title,
+                    text = videoData.title.toString(),
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(5.dp)

@@ -29,8 +29,7 @@ import com.example.lifeplus.domain.SearchHistoryData
 @Composable
 fun TopBar(
     search: (String) -> Unit,
-    searchHistorys: List<SearchHistoryData>?,
-    isSearching: Boolean
+    searchHistorys: List<SearchHistoryData>?
 ) {
     Column(
         modifier = Modifier
@@ -46,7 +45,7 @@ fun TopBar(
             onActiveChange = { active = it },
             onQueryChange = { query = it },
             onSearch = {
-                if (!isSearching && query.isNotEmpty()) {
+                if (query.isNotEmpty()) {
                     search(query)
                     active = false
                 }
@@ -72,7 +71,7 @@ fun TopBar(
                             },
                             modifier = Modifier
                                 .clickable {
-                                    if (!isSearching) {
+                                    if (searchHistory.query.isNotEmpty()) {
                                         query = searchHistory.query
                                         search(query)
                                         active = false
