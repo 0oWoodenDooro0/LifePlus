@@ -10,11 +10,15 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.KeyboardArrowLeft
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -48,9 +52,8 @@ fun VideoListView(
         ) {
             CircularProgressIndicator(modifier = Modifier.width(64.dp))
         }
-    }
-    else{
-        if (videoDatas.isEmpty()){
+    } else {
+        if (videoDatas.isEmpty()) {
             Column(
                 modifier = Modifier.fillMaxSize(),
                 verticalArrangement = Arrangement.Center,
@@ -72,7 +75,7 @@ fun VideoListView(
                     })
                 item(span = { GridItemSpan(2) }) {
                     Row {
-                        Button(
+                        IconButton(
                             onClick = {
                                 pageData.previousUrl?.let(changePage)
                             },
@@ -81,7 +84,10 @@ fun VideoListView(
                                 .padding(horizontal = 10.dp),
                             enabled = !pageData.previousUrl.isNullOrEmpty()
                         ) {
-                            Text(text = "<")
+                            Icon(
+                                imageVector = Icons.Default.KeyboardArrowLeft,
+                                contentDescription = "Previous Page"
+                            )
                         }
                         Button(
                             onClick = { }, modifier = Modifier.fillMaxWidth(0.25f)

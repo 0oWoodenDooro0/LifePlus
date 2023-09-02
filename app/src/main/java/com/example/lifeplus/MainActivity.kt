@@ -19,7 +19,6 @@ import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -44,9 +43,10 @@ class MainActivity : ComponentActivity() {
         setContent {
             LifePlusTheme {
                 val systemUiController = rememberSystemUiController()
+                val containerColor = MaterialTheme.colorScheme.surface
                 SideEffect {
                     systemUiController.setStatusBarColor(
-                        color = Color.Transparent
+                        color = containerColor
                     )
                 }
                 val fullScreenVideoData by viewModel.fullScreenVideoData.collectAsStateWithLifecycle()
@@ -59,14 +59,8 @@ class MainActivity : ComponentActivity() {
                         setPlayerPosition = { position -> viewModel.setPlayerPosition(position) })
                 } else {
                     Scaffold(topBar = {
-                        val searchHistorys by viewModel.searchHistorys.observeAsState()
                         Column {
-                            TopBar(
-                                search = { query ->
-                                    viewModel.changeTab(PornHubTab.Search(), query)
-                                },
-                                searchHistorys = searchHistorys
-                            )
+                            TopBar()
                             val selectedSite by viewModel.selectedSite.collectAsStateWithLifecycle()
                             val selectedPageIndex by viewModel.selectedTabIndex.collectAsStateWithLifecycle()
                             ScrollableTabRow(selectedTabIndex = selectedPageIndex) {
