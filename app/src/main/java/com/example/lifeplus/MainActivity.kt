@@ -8,10 +8,12 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
+import androidx.compose.material3.DrawerState
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.rememberDrawerState
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
@@ -20,13 +22,22 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.example.lifeplus.domain.PageData
+import com.example.lifeplus.domain.SearchHistoryData
+import com.example.lifeplus.domain.Site
+import com.example.lifeplus.domain.SiteTab
 import com.example.lifeplus.domain.Sites
+import com.example.lifeplus.domain.VideoData
 import com.example.lifeplus.ui.DrwerSheet
 import com.example.lifeplus.ui.FullScreenVideoPlayer
-import com.example.lifeplus.ui.MainNavHost
+import com.example.lifeplus.ui.MainScreen
 import com.example.lifeplus.ui.theme.LifePlusTheme
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
@@ -86,9 +97,7 @@ class MainActivity : ComponentActivity() {
                                 pageData = pageData,
                                 getVideoUrl = { videoData -> viewModel.getVideoSource(videoData) },
                                 playVideoFullScreen = { videoUrl ->
-                                    viewModel.playVideoFullScreen(
-                                        videoUrl
-                                    )
+                                    viewModel.playVideoFullScreen(videoUrl)
                                 },
                                 isLoading = isLoading,
                                 changePage = { url -> viewModel.changePage(url) },
@@ -100,6 +109,45 @@ class MainActivity : ComponentActivity() {
                 BackHandler(enabled = fullScreenVideoData.isFullScreen) {
                     viewModel.fullScreenOnDispose()
                 }
+            }
+        }
+    }
+}
+
+@Composable
+fun MainNavHost(
+    navController: NavHostController,
+    scope: CoroutineScope,
+    drawerState: DrawerState,
+    search: (SiteTab, String) -> Unit,
+    searchHistorys: List<SearchHistoryData>?,
+    selectedSite: Site,
+    changeTab: (SiteTab) -> Unit,
+    videoDatas: List<VideoData>,
+    pageData: PageData,
+    getVideoUrl: (VideoData) -> Unit,
+    playVideoFullScreen: (String) -> Unit,
+    isLoading: Boolean,
+    changePage: (String) -> Unit,
+    deleteAllSearchHistory: () -> Unit
+) {
+    NavHost(navController = navController, startDestination = Site.PornHub().name) {
+        Sites.listOfDrawer.forEach { site ->
+            composable(route = site.name) {
+                MainScreen(
+                    drawerClick = { scope.launch { drawerState.open() } },
+                    search = search,
+                    searchHistorys = searchHistorys ?: emptyList(),
+                    selectedSite = selectedSite,
+                    changeTab = changeTab,
+                    videoDatas = videoDatas,
+                    pageData = pageData,
+                    getVideoUrl = getVideoUrl,
+                    playVideoFullScreen = playVideoFullScreen,
+                    isLoading = isLoading,
+                    changePage = changePage,
+                    deleteAllSearchHistory = deleteAllSearchHistory
+                )
             }
         }
     }

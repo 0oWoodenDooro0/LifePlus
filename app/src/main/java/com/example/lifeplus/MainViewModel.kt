@@ -153,7 +153,7 @@ class MainViewModel(private val searchHistoryRepository: SearchHistoryRepository
                     val imageUrl = imageData.selectFirst("img")?.attr("src")
                     val detailUrl = baseUrl + imageData.selectFirst("a")?.attr("href")
                     val previewUrl = imageData.selectFirst("img")?.attr("data-mediabook")
-                    val duration = imageData.selectFirst("div.marker-overlays.js-noFade")?.text()
+                    val duration = imageData.selectFirst("div.marker-overlays.js-noFade var.duration")?.text()
                     val modelUrl = baseUrl + videoDetail.selectFirst("a")?.attr("href")
                     val views = videoDetail.selectFirst("span.views")?.text()
                     val rating =
@@ -211,7 +211,6 @@ class MainViewModel(private val searchHistoryRepository: SearchHistoryRepository
 
 
     fun getVideoSource(videoData: VideoData) {
-        if (!videoData.videoUrl.isNullOrEmpty()) return
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 htmlPage = webClient.getPage(videoData.detailUrl)

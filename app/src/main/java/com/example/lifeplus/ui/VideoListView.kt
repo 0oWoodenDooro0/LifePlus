@@ -1,6 +1,8 @@
 package com.example.lifeplus.ui
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -10,6 +12,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowLeft
 import androidx.compose.material3.Button
@@ -26,9 +29,12 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.example.lifeplus.R
 import com.example.lifeplus.domain.PageData
@@ -68,7 +74,11 @@ fun VideoListView(
                         val video = videoDatas[index]
                         VideoItem(
                             videoData = video,
-                            getVideoUrl = { videoData -> getVideoUrl(videoData) },
+                            getVideoUrl = { videoData ->
+                                if (!video.videoUrl.isNullOrEmpty()) {
+                                    getVideoUrl(videoData)
+                                }
+                            },
                             playVideoFullScreen = playVideoFullScreen
                         )
                     })
@@ -120,17 +130,46 @@ fun VideoItem(
         onClick = {
             showVideoDialog = true
             getVideoUrl(videoData)
-        }) {
-        AsyncImage(
-            model = videoData.imageUrl,
-            contentDescription = videoData.title,
-            modifier = Modifier.fillMaxWidth(),
-            contentScale = ContentScale.FillWidth,
-            placeholder = painterResource(id = R.drawable.placeholder)
-        )
-        Text(
-            text = videoData.title.toString(), modifier = Modifier.padding(5.dp), maxLines = 2
-        )
+        }
+    ) {
+        Box {
+            AsyncImage(
+                model = videoData.imageUrl,
+                contentDescription = videoData.title,
+                modifier = Modifier.fillMaxWidth(),
+                contentScale = ContentScale.FillWidth,
+                placeholder = painterResource(id = R.drawable.placeholder)
+            )
+            Box(
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .padding(5.dp)
+                    .clip(shape = RoundedCornerShape(5.dp))
+                    .background(Color.Black.copy(alpha = 0.6f))
+            ) {
+                Text(
+                    text = videoData.duration ?: "0",
+                    modifier = Modifier.padding(2.dp),
+                    color = Color.White,
+                    fontSize = 12.sp
+                )
+            }
+        }
+        Text(text = videoData.title.toString(), modifier = Modifier.padding(5.dp), maxLines = 2)
+        Row {
+            Text(
+                text = videoData.views ?: "0",
+                modifier = Modifier.padding(5.dp).weight(1f)
+            )
+            Row(modifier = Modifier.padding(5.dp)){
+                Icon(
+                    painter = painterResource(id = R.drawable.baseline_thumb_up_24),
+                    contentDescription = "ThumbUp",
+                    modifier = Modifier.padding(4.dp)
+                )
+                Text(text = videoData.rating ?: "0")
+            }
+        }
     }
     if (showVideoDialog) {
         VideoDialog(
