@@ -20,13 +20,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.lifeplus.domain.Sites
 import com.example.lifeplus.ui.DrwerSheet
 import com.example.lifeplus.ui.FullScreenVideoPlayer
-import com.example.lifeplus.ui.MainScreen
+import com.example.lifeplus.ui.MainNavHost
 import com.example.lifeplus.ui.theme.LifePlusTheme
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import kotlinx.coroutines.launch
@@ -75,35 +73,29 @@ class MainActivity : ComponentActivity() {
                                     viewModel.changeSite(site)
                                 }
                             )
-                        }
-                    ) {
-                        NavHost(navController = navController, startDestination = "PornHub") {
-                            Sites.listOfDrawer.forEach { site ->
-                                composable(route = site.name) {
-                                    MainScreen(
-                                        drawerClick = { scope.launch { drawerState.open() } },
-                                        deleteAllSearchHistory = { viewModel.deleteAllSearchHistory() },
-                                        search = { tab, query -> viewModel.changeTab(tab, query) },
-                                        searchHistorys = searchHistorys ?: emptyList(),
-                                        selectedSite = selectedSite,
-                                        changeTab = { tab -> viewModel.changeTab(tab) },
-                                        videoDatas = videoDatas,
-                                        pageData = pageData,
-                                        getVideoUrl = { videoData ->
-                                            viewModel.getVideoSource(
-                                                videoData
-                                            )
-                                        },
-                                        playVideoFullScreen = { videoUrl ->
-                                            viewModel.playVideoFullScreen(videoUrl)
-                                        },
-                                        isLoading = isLoading,
-                                        changePage = { url -> viewModel.changePage(url) }
+                        }, content = {
+                            MainNavHost(
+                                navController = navController,
+                                scope = scope,
+                                drawerState = drawerState,
+                                search = { tab, query -> viewModel.changeTab(tab, query) },
+                                searchHistorys = searchHistorys,
+                                selectedSite = selectedSite,
+                                changeTab = { tab -> viewModel.changeTab(tab) },
+                                videoDatas = videoDatas,
+                                pageData = pageData,
+                                getVideoUrl = { videoData -> viewModel.getVideoSource(videoData) },
+                                playVideoFullScreen = { videoUrl ->
+                                    viewModel.playVideoFullScreen(
+                                        videoUrl
                                     )
-                                }
-                            }
+                                },
+                                isLoading = isLoading,
+                                changePage = { url -> viewModel.changePage(url) },
+                                deleteAllSearchHistory = { viewModel.deleteAllSearchHistory() }
+                            )
                         }
-                    }
+                    )
                 }
                 BackHandler(enabled = fullScreenVideoData.isFullScreen) {
                     viewModel.fullScreenOnDispose()

@@ -68,6 +68,8 @@ class MainViewModel(private val searchHistoryRepository: SearchHistoryRepository
             is Site.Search -> {
                 changeTab(site.tab)
             }
+
+            else -> {}
         }
     }
 
@@ -101,6 +103,8 @@ class MainViewModel(private val searchHistoryRepository: SearchHistoryRepository
                     }
                 }
             }
+
+            else -> {}
         }
     }
 
@@ -123,6 +127,8 @@ class MainViewModel(private val searchHistoryRepository: SearchHistoryRepository
                     }
                 }
             }
+
+            else -> {}
         }
     }
 

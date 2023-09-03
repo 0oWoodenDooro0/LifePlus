@@ -1,20 +1,29 @@
 package com.example.lifeplus.domain
 
 
-sealed class Site(val name: String, val tabs: List<SiteTab>) {
+sealed class Site(val name: String) {
 
-    data class PornHub(val tab: PornHubTab = PornHubTab.Recommanded()) : Site(
-        name = "PornHub",
-        tabs = listOf(PornHubTab.Recommanded(), PornHubTab.Videos())
-    )
+    data class PornHub(
+        val tab: PornHubTab = PornHubTab.Recommanded(),
+        val tabs: List<SiteTab> = listOf(
+            PornHubTab.Recommanded(),
+            PornHubTab.Videos()
+        )
+    ) : Site(name = "PornHub")
 
-    data class Search(val tab: SearchTab = SearchTab.PornHub()) :
-        Site(name = "Search", tabs = listOf(SearchTab.PornHub()))
+    data class Search(
+        val tab: SearchTab = SearchTab.PornHub(),
+        val tabs: List<SiteTab> = listOf(SearchTab.PornHub())
+    ) : Site(name = "Search")
+
+    object Favorites : Site(name = "Favorites")
+    object Settings : Site(name = "Settings")
+
 }
 
 object Sites {
     val listOfSite = listOf(Site.PornHub())
-    val listOfDrawer = listOf(Site.PornHub(), Site.Search())
+    val listOfDrawer = listOf(Site.PornHub(), Site.Search(), Site.Favorites, Site.Settings)
 }
 
 abstract class SiteTab(val index: Int, val name: String)
