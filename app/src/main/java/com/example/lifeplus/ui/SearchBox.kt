@@ -24,12 +24,15 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.example.lifeplus.R
 import com.example.lifeplus.domain.SearchHistoryData
+import com.example.lifeplus.domain.SearchTab
+import com.example.lifeplus.domain.SiteTab
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SearchBox(
-    search: (String) -> Unit,
-    searchHistorys: List<SearchHistoryData>?
+    search: (SiteTab, String) -> Unit,
+    selectedTab: SearchTab,
+    searchHistorys: List<SearchHistoryData>
 ) {
     Column(
         modifier = Modifier
@@ -46,7 +49,7 @@ fun SearchBox(
             onQueryChange = { query = it },
             onSearch = {
                 if (query.isNotEmpty()) {
-                    search(query)
+                    search(selectedTab, query)
                     active = false
                 }
             },
@@ -58,29 +61,27 @@ fun SearchBox(
                 )
             }
         ) {
-            searchHistorys?.let { searchHistorys ->
-                LazyColumn {
-                    items(searchHistorys) { searchHistory ->
-                        ListItem(
-                            headlineContent = { Text(searchHistory.query) },
-                            leadingContent = {
-                                Icon(
-                                    painter = painterResource(id = R.drawable.baseline_history_24),
-                                    contentDescription = "Search History"
-                                )
-                            },
-                            modifier = Modifier
-                                .clickable {
-                                    if (searchHistory.query.isNotEmpty()) {
-                                        query = searchHistory.query
-                                        search(query)
-                                        active = false
-                                    }
+            LazyColumn {
+                items(searchHistorys) { searchHistory ->
+                    ListItem(
+                        headlineContent = { Text(searchHistory.query) },
+                        leadingContent = {
+                            Icon(
+                                painter = painterResource(id = R.drawable.baseline_history_24),
+                                contentDescription = "Search History"
+                            )
+                        },
+                        modifier = Modifier
+                            .clickable {
+                                if (searchHistory.query.isNotEmpty()) {
+                                    query = searchHistory.query
+                                    search(selectedTab, query)
+                                    active = false
                                 }
-                                .fillMaxWidth()
-                                .padding(horizontal = 16.dp, vertical = 4.dp)
-                        )
-                    }
+                            }
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 4.dp)
+                    )
                 }
             }
         }

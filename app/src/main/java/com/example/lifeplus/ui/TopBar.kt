@@ -11,15 +11,17 @@ import androidx.compose.runtime.Composable
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TopBar() {
+fun TopBar(
+    drawerClick: () -> Unit
+) {
     CenterAlignedTopAppBar(
         title = { },
         navigationIcon = {
-            IconButton(onClick = { /*TODO*/ }) {
+            IconButton(onClick = { drawerClick() }) {
                 Icon(imageVector = Icons.Default.Menu, contentDescription = "Drawer")
             }
         },
-        actions={
+        actions = {
             IconButton(onClick = { /*TODO*/ }) {
                 Icon(imageVector = Icons.Default.MoreVert, contentDescription = "Menu")
             }

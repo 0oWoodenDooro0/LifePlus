@@ -10,6 +10,7 @@ import com.example.lifeplus.domain.FullScreenVideoData
 import com.example.lifeplus.domain.PageData
 import com.example.lifeplus.domain.PornHubTab
 import com.example.lifeplus.domain.SearchHistoryData
+import com.example.lifeplus.domain.SearchTab
 import com.example.lifeplus.domain.Site
 import com.example.lifeplus.domain.SiteTab
 import com.example.lifeplus.domain.VideoData
@@ -59,6 +60,20 @@ class MainViewModel(private val searchHistoryRepository: SearchHistoryRepository
     private val _playerPosition = MutableStateFlow(0L)
     val playerPosition = _playerPosition.asStateFlow()
 
+    fun changeSite(site: Site) {
+        _selectedSite.value = site
+        when (site) {
+            is Site.PornHub -> {
+                baseUrl = "https://pornhub.com"
+                changeTab(site.tab)
+            }
+
+            is Site.Search -> {
+                changeTab(site.tab)
+            }
+        }
+    }
+
     fun changeTab(tab: SiteTab, query: String = "") {
         when (_selectedSite.value) {
             is Site.PornHub -> {
@@ -69,8 +84,12 @@ class MainViewModel(private val searchHistoryRepository: SearchHistoryRepository
                         val cssQuery = ".container li.pcVideoListItem.js-pop.videoblock"
                         loadSite(baseUrl + tab.url, cssQuery)
                     }
+                }
+            }
 
-                    is PornHubTab.Search -> {
+            is Site.Search -> {
+                when (tab) {
+                    is SearchTab.PornHub -> {
                         if (query != "") {
                             val url = "https://www.pornhub.com/video/search?search=$query"
                             val cssQuery =
@@ -95,8 +114,12 @@ class MainViewModel(private val searchHistoryRepository: SearchHistoryRepository
                         val cssQuery = ".container li.pcVideoListItem.js-pop.videoblock"
                         loadSite(url, cssQuery)
                     }
+                }
+            }
 
-                    is PornHubTab.Search -> {
+            is Site.Search -> {
+                when ((_selectedSite.value as Site.Search).tab) {
+                    is SearchTab.PornHub -> {
                         val cssQuery = "ul#videoSearchResult li.pcVideoListItem.js-pop.videoblock"
                         loadSite(url, cssQuery)
                     }
@@ -107,7 +130,7 @@ class MainViewModel(private val searchHistoryRepository: SearchHistoryRepository
 
     private fun loadSite(url: String, cssQuery: String) {
         job?.run { if (isActive) cancel() }
-        job = viewModelScope.launch(Dispatchers.Default) {
+        job = viewModelScope.launch(Dispatchers.IO) {
             _isLoading.value = true
             try {
                 htmlPage = webClient.getPage(url)
@@ -172,7 +195,7 @@ class MainViewModel(private val searchHistoryRepository: SearchHistoryRepository
         webClient.options.isCssEnabled = false
         webClient.options.isThrowExceptionOnScriptError = false
         webClient.options.isThrowExceptionOnFailingStatusCode = false
-        changeTab(PornHubTab.Recommanded())
+        changeTab(Site.PornHub().tab)
     }
 
     private fun upsert(searchHistory: SearchHistoryData) = viewModelScope.launch {

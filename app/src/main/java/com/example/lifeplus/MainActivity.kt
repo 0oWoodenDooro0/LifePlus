@@ -8,27 +8,28 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.ScrollableTabRow
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Tab
-import androidx.compose.material3.Text
+import androidx.compose.material3.ModalNavigationDrawer
+import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.example.lifeplus.domain.PornHubTab
-import com.example.lifeplus.domain.Site
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import com.example.lifeplus.domain.Sites
+import com.example.lifeplus.ui.DrwerSheet
 import com.example.lifeplus.ui.FullScreenVideoPlayer
-import com.example.lifeplus.ui.TopBar
-import com.example.lifeplus.ui.VideoListView
+import com.example.lifeplus.ui.MainScreen
 import com.example.lifeplus.ui.theme.LifePlusTheme
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
+import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
 
@@ -44,64 +45,64 @@ class MainActivity : ComponentActivity() {
             LifePlusTheme {
                 val systemUiController = rememberSystemUiController()
                 val containerColor = MaterialTheme.colorScheme.surface
-                SideEffect {
-                    systemUiController.setStatusBarColor(
-                        color = containerColor
-                    )
-                }
-                val fullScreenVideoData by viewModel.fullScreenVideoData.collectAsStateWithLifecycle()
+                SideEffect { systemUiController.setStatusBarColor(color = containerColor) }
+                val navController = rememberNavController()
                 val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
-                val playerPosition by viewModel.playerPosition.collectAsStateWithLifecycle()
+                val fullScreenVideoData by viewModel.fullScreenVideoData.collectAsStateWithLifecycle()
                 if (fullScreenVideoData.isFullScreen) {
+                    val playerPosition by viewModel.playerPosition.collectAsStateWithLifecycle()
                     FullScreenVideoPlayer(
                         uri = Uri.parse(fullScreenVideoData.videoUrl),
                         position = playerPosition,
                         setPlayerPosition = { position -> viewModel.setPlayerPosition(position) })
                 } else {
-                    Scaffold(topBar = {
-                        Column {
-                            TopBar()
-                            val selectedSite by viewModel.selectedSite.collectAsStateWithLifecycle()
-                            val selectedPageIndex by viewModel.selectedTabIndex.collectAsStateWithLifecycle()
-                            ScrollableTabRow(selectedTabIndex = selectedPageIndex) {
-                                when (selectedSite) {
-                                    is Site.PornHub -> {
-                                        val tabs =
-                                            listOf(
-                                                PornHubTab.Recommanded(),
-                                                PornHubTab.Videos(),
-                                                PornHubTab.Search()
+                    val drawerState = rememberDrawerState(DrawerValue.Closed)
+                    val scope = rememberCoroutineScope()
+                    var selectedDrawerItem by remember { mutableStateOf(Sites.listOfDrawer[0]) }
+                    val selectedSite by viewModel.selectedSite.collectAsStateWithLifecycle()
+                    val selectedPageIndex by viewModel.selectedTabIndex.collectAsStateWithLifecycle()
+                    val videoDatas by viewModel.videoDatas.collectAsStateWithLifecycle()
+                    val pageData by viewModel.pageData.collectAsStateWithLifecycle()
+                    val searchHistorys by viewModel.searchHistorys.observeAsState()
+                    ModalNavigationDrawer(
+                        drawerState = drawerState,
+                        drawerContent = {
+                            DrwerSheet(
+                                selectedDrawerItem = selectedDrawerItem,
+                                drawerItemOnClick = { site ->
+                                    selectedDrawerItem = site
+                                    scope.launch { drawerState.close() }
+                                    navController.navigate(selectedDrawerItem.name)
+                                    viewModel.changeSite(site)
+                                }
+                            )
+                        }
+                    ) {
+                        NavHost(navController = navController, startDestination = "PornHub") {
+                            Sites.listOfDrawer.forEach { site ->
+                                composable(route = site.name) {
+                                    MainScreen(
+                                        drawerClick = { scope.launch { drawerState.open() } },
+                                        search = { tab, query -> viewModel.changeTab(tab, query) },
+                                        searchHistorys = searchHistorys ?: emptyList(),
+                                        selectedSite = selectedSite,
+                                        selectedPageIndex = selectedPageIndex,
+                                        changeTab = { tab -> viewModel.changeTab(tab) },
+                                        videoDatas = videoDatas,
+                                        pageData = pageData,
+                                        getVideoUrl = { videoData ->
+                                            viewModel.getVideoSource(
+                                                videoData
                                             )
-                                        tabs.forEachIndexed { _, tab ->
-                                            Tab(
-                                                text = { Text(text = tab.name) },
-                                                selected = selectedPageIndex == tab.index,
-                                                onClick = { viewModel.changeTab(tab) }
-                                            )
-                                        }
-                                    }
+                                        },
+                                        playVideoFullScreen = { videoUrl ->
+                                            viewModel.playVideoFullScreen(videoUrl)
+                                        },
+                                        isLoading = isLoading,
+                                        changePage = { url -> viewModel.changePage(url) }
+                                    )
                                 }
                             }
-                        }
-                    }) { paddingValues ->
-                        Surface(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .padding(paddingValues),
-                            color = MaterialTheme.colorScheme.background
-                        ) {
-                            val videoDatas by viewModel.videoDatas.collectAsStateWithLifecycle()
-                            val pageData by viewModel.pageData.collectAsStateWithLifecycle()
-                            VideoListView(
-                                videoDatas = videoDatas,
-                                getVideoUrl = { videoData -> viewModel.getVideoSource(videoData) },
-                                playVideoFullScreen = { videoUrl ->
-                                    viewModel.playVideoFullScreen(videoUrl)
-                                },
-                                isLoading = isLoading,
-                                pageData = pageData,
-                                changePage = { url -> viewModel.changePage(url) }
-                            )
                         }
                     }
                 }
