@@ -19,4 +19,7 @@ interface SearchHistoryDao {
 
     @Query("SELECT EXISTS(SELECT * FROM searchhistory WHERE `query` = :query)")
     suspend fun isQueryExist(query: String): Boolean
+
+    @Query("DELETE FROM searchhistory")
+    suspend fun deleteAllSearchHistory()
 }

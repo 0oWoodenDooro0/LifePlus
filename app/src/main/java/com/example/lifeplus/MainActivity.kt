@@ -82,6 +82,7 @@ class MainActivity : ComponentActivity() {
                                 composable(route = site.name) {
                                     MainScreen(
                                         drawerClick = { scope.launch { drawerState.open() } },
+                                        deleteAllSearchHistory = { viewModel.deleteAllSearchHistory() },
                                         search = { tab, query -> viewModel.changeTab(tab, query) },
                                         searchHistorys = searchHistorys ?: emptyList(),
                                         selectedSite = selectedSite,

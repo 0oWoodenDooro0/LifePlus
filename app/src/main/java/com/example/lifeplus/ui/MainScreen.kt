@@ -20,6 +20,7 @@ import com.example.lifeplus.domain.VideoData
 @Composable
 fun MainScreen(
     drawerClick: () -> Unit,
+    deleteAllSearchHistory: () -> Unit,
     search: (SiteTab, String) -> Unit,
     searchHistorys: List<SearchHistoryData>,
     selectedSite: Site,
@@ -34,7 +35,7 @@ fun MainScreen(
     Scaffold(
         topBar = {
             Column {
-                TopBar(drawerClick = drawerClick)
+                TopBar(drawerClick = drawerClick, deleteAllSearchHistory = deleteAllSearchHistory)
                 if (selectedSite is Site.Search) {
                     SearchBox(
                         search = search,

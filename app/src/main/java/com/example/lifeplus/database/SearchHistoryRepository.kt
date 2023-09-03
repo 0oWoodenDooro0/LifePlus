@@ -14,4 +14,6 @@ class SearchHistoryRepository(private val searchHistoryDao: SearchHistoryDao) {
 
     suspend fun isQueryExist(query: String): Boolean = searchHistoryDao.isQueryExist(query)
 
+    suspend fun deleteAllSearchHistory() = searchHistoryDao.deleteAllSearchHistory()
+
 }

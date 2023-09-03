@@ -199,6 +199,11 @@ class MainViewModel(private val searchHistoryRepository: SearchHistoryRepository
         searchHistoryRepository.upsert(searchHistory)
     }
 
+    fun deleteAllSearchHistory() = viewModelScope.launch(Dispatchers.IO) {
+        searchHistoryRepository.deleteAllSearchHistory()
+    }
+
+
     fun getVideoSource(videoData: VideoData) {
         if (!videoData.videoUrl.isNullOrEmpty()) return
         viewModelScope.launch(Dispatchers.IO) {
