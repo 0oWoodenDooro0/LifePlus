@@ -18,7 +18,6 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -75,10 +74,8 @@ fun VideoListView(
                     })
                 item(span = { GridItemSpan(2) }) {
                     Row {
-                        IconButton(
-                            onClick = {
-                                pageData.previousUrl?.let(changePage)
-                            },
+                        Button(
+                            onClick = { pageData.previousUrl?.let(changePage) },
                             modifier = Modifier
                                 .fillMaxWidth(0.25f)
                                 .padding(horizontal = 10.dp),
@@ -92,7 +89,7 @@ fun VideoListView(
                         Button(
                             onClick = { }, modifier = Modifier.fillMaxWidth(0.25f)
                         ) {
-                            Text(text = pageData.currentPage.toString())
+                            Text(text = pageData.currentPage)
                         }
                         Button(
                             onClick = { pageData.nextUrl?.let(changePage) },

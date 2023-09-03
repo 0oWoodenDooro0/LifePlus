@@ -94,6 +94,7 @@ class MainViewModel(private val searchHistoryRepository: SearchHistoryRepository
                             loadSite(url, cssQuery)
                             upsert(SearchHistoryData(query))
                         } else {
+                            job?.run { if (isActive) cancel() }
                             _isLoading.value = false
                             _videoDatas.value = emptyList()
                         }
@@ -134,15 +135,11 @@ class MainViewModel(private val searchHistoryRepository: SearchHistoryRepository
             } catch (_: IOException) {
             }
             if (isActive) {
-                webClient.waitForBackgroundJavaScript(2000)
-            }
-            if (isActive) {
                 val doc: Document = Jsoup.parse(htmlPage.asXml())
                 val data = doc.select(cssQuery)
                 val imageDatas = data.select("div.phimage")
                 val videoDetails = data.select("div.thumbnail-info-wrapper.clearfix")
-                val page = doc.selectFirst("div.pagination3.paginationGated")
-                val vidDatas: List<VideoData> = imageDatas.zip(videoDetails).map { pair ->
+                _videoDatas.value = imageDatas.zip(videoDetails).map { pair ->
                     val imageData = pair.first
                     val videoDetail = pair.second
                     val id = imageData.selectFirst("img")?.attr("data-video-id")?.toInt()
@@ -169,20 +166,20 @@ class MainViewModel(private val searchHistoryRepository: SearchHistoryRepository
                         added
                     )
                 }
-                _videoDatas.value = vidDatas
-                val pageUrl = page?.select("a.orangeButton")
-                val currentPage = page?.selectFirst("li.page_current")?.text()
-                pageUrl?.let {
+                val page = doc.selectFirst("div.pagination3.paginationGated")
+                _pageData.value = page?.let {
+                    val currentPage = it.selectFirst("li.page_current")?.text() ?: "1"
+                    val pageUrl = it.select("a.orangeButton")
                     val previousPage =
-                        if (it[0].attr("href").isNullOrEmpty()) null else baseUrl + pageUrl[0].attr(
-                            "href"
-                        )
+                        if (pageUrl[0].attr("href")
+                                .isNullOrEmpty()
+                        ) null else baseUrl + pageUrl[0].attr("href")
                     val nextPage =
-                        if (it[1].attr("href").isNullOrEmpty()) null else baseUrl + pageUrl[1].attr(
-                            "href"
-                        )
-                    _pageData.value = PageData(previousPage, currentPage, nextPage)
-                }
+                        if (pageUrl[1].attr("href")
+                                .isNullOrEmpty()
+                        ) null else baseUrl + pageUrl[1].attr("href")
+                    PageData(previousPage, currentPage, nextPage)
+                } ?: PageData()
                 _isLoading.value = false
             }
         }
