@@ -39,9 +39,6 @@ class MainViewModel(private val searchHistoryRepository: SearchHistoryRepository
     private val _selectedSite = MutableStateFlow<Site>(Site.PornHub())
     val selectedSite = _selectedSite.asStateFlow()
 
-    private val _selectedTabIndex = MutableStateFlow(0)
-    val selectedTabIndex = _selectedTabIndex.asStateFlow()
-
     val searchHistorys: LiveData<List<SearchHistoryData>> =
         searchHistoryRepository.searchHistorys.asLiveData()
 
@@ -77,7 +74,7 @@ class MainViewModel(private val searchHistoryRepository: SearchHistoryRepository
     fun changeTab(tab: SiteTab, query: String = "") {
         when (_selectedSite.value) {
             is Site.PornHub -> {
-                _selectedTabIndex.value = (tab as PornHubTab).index
+                _selectedSite.value = Site.PornHub(tab as PornHubTab)
                 baseUrl = "https://pornhub.com"
                 when (tab) {
                     is PornHubTab.Recommanded, is PornHubTab.Videos -> {

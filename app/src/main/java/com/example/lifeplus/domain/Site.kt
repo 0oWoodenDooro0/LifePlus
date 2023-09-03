@@ -2,6 +2,7 @@ package com.example.lifeplus.domain
 
 
 sealed class Site(val name: String, val tabs: List<SiteTab>) {
+
     data class PornHub(val tab: PornHubTab = PornHubTab.Recommanded()) : Site(
         name = "PornHub",
         tabs = listOf(PornHubTab.Recommanded(), PornHubTab.Videos())

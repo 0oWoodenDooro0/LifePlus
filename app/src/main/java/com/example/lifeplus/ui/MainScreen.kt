@@ -23,7 +23,6 @@ fun MainScreen(
     search: (SiteTab, String) -> Unit,
     searchHistorys: List<SearchHistoryData>,
     selectedSite: Site,
-    selectedPageIndex: Int,
     changeTab: (SiteTab) -> Unit,
     videoDatas: List<VideoData>,
     pageData: PageData,
@@ -43,6 +42,13 @@ fun MainScreen(
                         searchHistorys = searchHistorys
                     )
                 }
+                val selectedPageIndex = selectedSite.tabs.indexOf(
+                    when (selectedSite) {
+                        is Site.PornHub -> selectedSite.tab
+                        is Site.Search -> selectedSite.tab
+                    }
+                )
+                println(selectedPageIndex)
                 ScrollableTabRow(
                     selectedTabIndex = selectedPageIndex
                 ) {

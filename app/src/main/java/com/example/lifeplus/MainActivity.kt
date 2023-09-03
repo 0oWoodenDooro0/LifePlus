@@ -60,7 +60,6 @@ class MainActivity : ComponentActivity() {
                     val scope = rememberCoroutineScope()
                     var selectedDrawerItem by remember { mutableStateOf(Sites.listOfDrawer[0]) }
                     val selectedSite by viewModel.selectedSite.collectAsStateWithLifecycle()
-                    val selectedPageIndex by viewModel.selectedTabIndex.collectAsStateWithLifecycle()
                     val videoDatas by viewModel.videoDatas.collectAsStateWithLifecycle()
                     val pageData by viewModel.pageData.collectAsStateWithLifecycle()
                     val searchHistorys by viewModel.searchHistorys.observeAsState()
@@ -86,7 +85,6 @@ class MainActivity : ComponentActivity() {
                                         search = { tab, query -> viewModel.changeTab(tab, query) },
                                         searchHistorys = searchHistorys ?: emptyList(),
                                         selectedSite = selectedSite,
-                                        selectedPageIndex = selectedPageIndex,
                                         changeTab = { tab -> viewModel.changeTab(tab) },
                                         videoDatas = videoDatas,
                                         pageData = pageData,
