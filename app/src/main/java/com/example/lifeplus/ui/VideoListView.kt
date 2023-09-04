@@ -45,6 +45,7 @@ fun VideoListView(
     videoDatas: List<VideoData>,
     getVideoUrl: (VideoData) -> Unit,
     playVideoFullScreen: (String) -> Unit,
+    addToFavorite: (VideoData) -> Unit,
     isLoading: Boolean,
     pageData: PageData,
     changePage: (String) -> Unit
@@ -69,17 +70,18 @@ fun VideoListView(
         } else {
             LazyVerticalGrid(columns = GridCells.Fixed(2), modifier = Modifier.fillMaxSize()) {
                 items(count = videoDatas.size,
-                    key = { videoDatas[it].id ?: videoDatas },
+                    key = { videoDatas[it].id },
                     itemContent = { index ->
                         val video = videoDatas[index]
                         VideoItem(
                             videoData = video,
                             getVideoUrl = { videoData ->
-                                if (!video.videoUrl.isNullOrEmpty()) {
+                                if (video.videoUrl.isEmpty()) {
                                     getVideoUrl(videoData)
                                 }
                             },
-                            playVideoFullScreen = playVideoFullScreen
+                            playVideoFullScreen = playVideoFullScreen,
+                            addToFavorite = addToFavorite
                         )
                     })
                 item(span = { GridItemSpan(2) }) {
@@ -120,7 +122,10 @@ fun VideoListView(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun VideoItem(
-    videoData: VideoData, getVideoUrl: (VideoData) -> Unit, playVideoFullScreen: (String) -> Unit
+    videoData: VideoData,
+    getVideoUrl: (VideoData) -> Unit,
+    playVideoFullScreen: (String) -> Unit,
+    addToFavorite: (VideoData) -> Unit
 ) {
     var showVideoDialog by rememberSaveable { mutableStateOf(false) }
     Card(modifier = Modifier
@@ -129,7 +134,7 @@ fun VideoItem(
         elevation = CardDefaults.cardElevation(defaultElevation = 10.dp),
         onClick = {
             showVideoDialog = true
-            getVideoUrl(videoData)
+            if (videoData.videoUrl == "") getVideoUrl(videoData)
         }
     ) {
         Box {
@@ -148,26 +153,28 @@ fun VideoItem(
                     .background(Color.Black.copy(alpha = 0.6f))
             ) {
                 Text(
-                    text = videoData.duration ?: "0",
+                    text = videoData.duration,
                     modifier = Modifier.padding(2.dp),
                     color = Color.White,
                     fontSize = 12.sp
                 )
             }
         }
-        Text(text = videoData.title.toString(), modifier = Modifier.padding(5.dp), maxLines = 2)
+        Text(text = videoData.title, modifier = Modifier.padding(5.dp), maxLines = 2)
         Row {
             Text(
-                text = videoData.views ?: "0",
-                modifier = Modifier.padding(5.dp).weight(1f)
+                text = videoData.views,
+                modifier = Modifier
+                    .padding(5.dp)
+                    .weight(1f)
             )
-            Row(modifier = Modifier.padding(5.dp)){
+            Row(modifier = Modifier.padding(5.dp)) {
                 Icon(
                     painter = painterResource(id = R.drawable.baseline_thumb_up_24),
                     contentDescription = "ThumbUp",
                     modifier = Modifier.padding(4.dp)
                 )
-                Text(text = videoData.rating ?: "0")
+                Text(text = videoData.rating)
             }
         }
     }
@@ -175,7 +182,10 @@ fun VideoItem(
         VideoDialog(
             onDismiss = {
                 showVideoDialog = false
-            }, videoData = videoData, playVideoFullScreen = playVideoFullScreen
+            },
+            videoData = videoData,
+            playVideoFullScreen = playVideoFullScreen,
+            addToFavorite = addToFavorite
         )
     }
 }

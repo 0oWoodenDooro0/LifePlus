@@ -22,10 +22,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -48,7 +45,8 @@ import com.example.lifeplus.domain.VideoData
 fun VideoDialog(
     onDismiss: () -> Unit,
     videoData: VideoData,
-    playVideoFullScreen: (String) -> Unit
+    playVideoFullScreen: (String) -> Unit,
+    addToFavorite: (VideoData) -> Unit
 ) {
     Dialog(onDismissRequest = onDismiss) {
         Surface(
@@ -61,7 +59,7 @@ fun VideoDialog(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
-                    text = videoData.title.toString(),
+                    text = videoData.title,
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(5.dp)
@@ -73,24 +71,23 @@ fun VideoDialog(
                 Row {
                     Button(
                         onClick = {
-                            videoData.videoUrl?.let(playVideoFullScreen)
+                            playVideoFullScreen(videoData.videoUrl)
                         },
                         modifier = Modifier.padding(5.dp).weight(1f),
-                        enabled = !videoData.videoUrl.isNullOrEmpty()
+                        enabled = videoData.videoUrl.isNotEmpty()
                     ) {
                         Text(
-                            text = if (!videoData.videoUrl.isNullOrEmpty()) "Watch" else "Preparing",
+                            text = if (videoData.videoUrl != "") "Watch" else "Preparing",
                             textAlign = TextAlign.Center
                         )
                     }
-                    var isFavorite by remember { mutableStateOf(false) }
                     IconToggleButton(
-                        checked = isFavorite,
-                        onCheckedChange = { isFavorite = !isFavorite },
+                        checked = videoData.isFavorite,
+                        onCheckedChange = { addToFavorite(videoData) },
                         modifier = Modifier.padding(5.dp)
                     ) {
                         val icon =
-                            if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder
+                            if (videoData.isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder
                         Icon(imageVector = icon, contentDescription = "Favorite")
                     }
                 }

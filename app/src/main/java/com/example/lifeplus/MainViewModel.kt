@@ -5,7 +5,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.asLiveData
 import androidx.lifecycle.viewModelScope
-import com.example.lifeplus.database.SearchHistoryRepository
+import com.example.lifeplus.database.LifeRepository
+import com.example.lifeplus.domain.Favorite
 import com.example.lifeplus.domain.FullScreenVideoData
 import com.example.lifeplus.domain.PageData
 import com.example.lifeplus.domain.PornHubTab
@@ -28,7 +29,7 @@ import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import java.io.IOException
 
-class MainViewModel(private val searchHistoryRepository: SearchHistoryRepository) : ViewModel() {
+class MainViewModel(private val lifeRepository: LifeRepository) : ViewModel() {
 
     private var webClient: WebClient = WebClient(BrowserVersion.FIREFOX)
     private lateinit var baseUrl: String
@@ -40,7 +41,9 @@ class MainViewModel(private val searchHistoryRepository: SearchHistoryRepository
     val selectedSite = _selectedSite.asStateFlow()
 
     val searchHistorys: LiveData<List<SearchHistoryData>> =
-        searchHistoryRepository.searchHistorys.asLiveData()
+        lifeRepository.searchHistorys.asLiveData()
+
+    val favorites: LiveData<List<Favorite>> = lifeRepository.favorites.asLiveData()
 
     private val _videoDatas = MutableStateFlow<List<VideoData>>(emptyList())
     val videoDatas = _videoDatas.asStateFlow()
@@ -148,29 +151,59 @@ class MainViewModel(private val searchHistoryRepository: SearchHistoryRepository
                 _videoDatas.value = imageDatas.zip(videoDetails).map { pair ->
                     val imageData = pair.first
                     val videoDetail = pair.second
-                    val id = imageData.selectFirst("img")?.attr("data-video-id")?.toInt()
-                    val title = imageData.selectFirst("img")?.attr("title")
-                    val imageUrl = imageData.selectFirst("img")?.attr("src")
-                    val detailUrl = baseUrl + imageData.selectFirst("a")?.attr("href")
-                    val previewUrl = imageData.selectFirst("img")?.attr("data-mediabook")
-                    val duration = imageData.selectFirst("div.marker-overlays.js-noFade var.duration")?.text()
-                    val modelUrl = baseUrl + videoDetail.selectFirst("a")?.attr("href")
-                    val views = videoDetail.selectFirst("span.views")?.text()
-                    val rating =
-                        videoDetail.selectFirst("div.rating-container.neutral > div.value")?.text()
-                    val added = videoDetail.selectFirst("var.added")?.text()
-                    VideoData(
-                        id,
-                        title,
-                        imageUrl,
-                        detailUrl,
-                        previewUrl,
-                        duration,
-                        modelUrl,
-                        views,
-                        rating,
-                        added
-                    )
+                    val id = imageData.selectFirst("img")?.attr("data-video-id")?.toInt() ?: 0
+                    val isFavorite = lifeRepository.favoriteByIdIsExist(id)
+                    if (isFavorite) {
+                        val favorite = lifeRepository.getFavoriteById(id)
+                        VideoData(
+                            id = id,
+                            title = favorite.title,
+                            imageUrl = favorite.imageUrl,
+                            detailUrl = favorite.detailUrl,
+                            previewUrl = favorite.previewUrl,
+                            duration = favorite.duration,
+                            modelUrl = favorite.modelUrl,
+                            views = favorite.views,
+                            rating = favorite.rating,
+                            added = favorite.added,
+                            videoUrl = favorite.videoUrl,
+                            isFavorite = true
+                        )
+                    } else {
+                        val title = imageData.selectFirst("img")?.attr("title") ?: ""
+                        val imageUrl = imageData.selectFirst("img")?.attr("src") ?: ""
+                        val detailUrl = imageData.selectFirst("a")?.attr("href")?.let {
+                            baseUrl + it
+                        } ?: ""
+                        val previewUrl = imageData.selectFirst("img")?.attr("data-mediabook") ?: ""
+                        val duration =
+                            imageData.selectFirst("div.marker-overlays.js-noFade var.duration")
+                                ?.text()
+                                ?: ""
+                        val modelUrl = videoDetail.selectFirst("a")?.attr("href")?.let {
+                            baseUrl + it
+                        } ?: ""
+                        val views = videoDetail.selectFirst("span.views")?.text() ?: ""
+                        val rating =
+                            videoDetail.selectFirst("div.rating-container.neutral > div.value")
+                                ?.text()
+                                ?: ""
+                        val added = videoDetail.selectFirst("var.added")?.text() ?: ""
+                        VideoData(
+                            id = id,
+                            title = title,
+                            imageUrl = imageUrl,
+                            detailUrl = detailUrl,
+                            previewUrl = previewUrl,
+                            duration = duration,
+                            modelUrl = modelUrl,
+                            views = views,
+                            rating = rating,
+                            added = added,
+                            videoUrl = "",
+                            isFavorite = false
+                        )
+                    }
                 }
                 val page = doc.selectFirst("div.pagination3.paginationGated")
                 _pageData.value = page?.let {
@@ -199,14 +232,39 @@ class MainViewModel(private val searchHistoryRepository: SearchHistoryRepository
     }
 
     private fun upsert(searchHistory: SearchHistoryData) = viewModelScope.launch {
-        if (searchHistoryRepository.isQueryExist(searchHistory.query)) {
-            searchHistoryRepository.deleteByQuery(searchHistory.query)
-        }
-        searchHistoryRepository.upsert(searchHistory)
+        lifeRepository.updateQuery(searchHistory)
     }
 
     fun deleteAllSearchHistory() = viewModelScope.launch(Dispatchers.IO) {
-        searchHistoryRepository.deleteAllSearchHistory()
+        lifeRepository.deleteAllSearchHistory()
+    }
+
+    fun addToFavorite(videoData: VideoData) = viewModelScope.launch(Dispatchers.IO) {
+        if (videoData.isFavorite) {
+            lifeRepository.deleteFavoriteById(videoData.id)
+        } else {
+            lifeRepository.upsertFavorite(
+                Favorite(
+                    timeStamp = System.currentTimeMillis(),
+                    videoId = videoData.id,
+                    title = videoData.title,
+                    imageUrl = videoData.imageUrl,
+                    detailUrl = videoData.detailUrl,
+                    previewUrl = videoData.previewUrl,
+                    duration = videoData.duration,
+                    modelUrl = videoData.modelUrl,
+                    views = videoData.views,
+                    rating = videoData.rating,
+                    added = videoData.added,
+                    videoUrl = videoData.videoUrl
+                )
+            )
+        }
+        _videoDatas.update { videos ->
+            videos.map { video ->
+                if (video.id == videoData.id) video.copy(isFavorite = !videoData.isFavorite) else video
+            }
+        }
     }
 
 
@@ -222,20 +280,13 @@ class MainViewModel(private val searchHistoryRepository: SearchHistoryRepository
                     ?: ""
             _videoDatas.update { videos ->
                 videos.map { video ->
-                    if (video.id == videoData.id) VideoData(
-                        video.id,
-                        video.title,
-                        video.imageUrl,
-                        video.detailUrl,
-                        video.previewUrl,
-                        video.duration,
-                        video.modelUrl,
-                        video.views,
-                        video.rating,
-                        video.added,
-                        vidUrl
-                    ) else video
+                    if (video.id == videoData.id) {
+                        video.copy(videoUrl = vidUrl)
+                    } else video
                 }
+            }
+            if (lifeRepository.favoriteByIdIsExist(videoData.id)) {
+                lifeRepository.updateVideoUrlById(videoData.id, vidUrl)
             }
         }
     }
@@ -253,11 +304,11 @@ class MainViewModel(private val searchHistoryRepository: SearchHistoryRepository
         _playerPosition.value = position
     }
 
-    class MainViewModelFactory(private val searchHistoryRepository: SearchHistoryRepository) :
+    class MainViewModelFactory(private val lifeRepository: LifeRepository) :
         ViewModelProvider.Factory {
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
             if (modelClass.isAssignableFrom(MainViewModel::class.java)) {
-                @Suppress("UNCHECKED_CAST") return MainViewModel(searchHistoryRepository) as T
+                @Suppress("UNCHECKED_CAST") return MainViewModel(lifeRepository) as T
             }
             throw IllegalArgumentException("Unknown VieModel Class")
         }

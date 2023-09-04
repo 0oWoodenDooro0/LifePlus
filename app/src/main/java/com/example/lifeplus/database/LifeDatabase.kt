@@ -4,15 +4,15 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import com.example.lifeplus.domain.Favorite
 import com.example.lifeplus.domain.SearchHistoryData
 
 @Database(
-    entities = [SearchHistoryData::class],
-    version = 2,
-    exportSchema = false
+    entities = [SearchHistoryData::class, Favorite::class], version = 3, exportSchema = false
 )
 abstract class LifeDatabase : RoomDatabase() {
     abstract val searchHistoryDao: SearchHistoryDao
+    abstract val favoriteDao: FavoriteDao
 
     companion object {
 
@@ -22,10 +22,8 @@ abstract class LifeDatabase : RoomDatabase() {
         fun getDatabase(context: Context): LifeDatabase {
             return INSTANCE ?: synchronized(this) {
                 val instance = Room.databaseBuilder(
-                    context.applicationContext,
-                    LifeDatabase::class.java,
-                    "LifeDatabase"
-                ).build()
+                    context.applicationContext, LifeDatabase::class.java, "LifeDatabase"
+                ).fallbackToDestructiveMigration().build()
 
                 INSTANCE = instance
 

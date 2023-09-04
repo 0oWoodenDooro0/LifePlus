@@ -1,16 +1,14 @@
 package com.example.lifeplus.ui
 
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import com.example.lifeplus.domain.Favorite
 import com.example.lifeplus.domain.PageData
 import com.example.lifeplus.domain.SearchHistoryData
 import com.example.lifeplus.domain.Site
@@ -30,6 +28,8 @@ fun MainScreen(
     playVideoFullScreen: (String) -> Unit,
     isLoading: Boolean,
     changePage: (String) -> Unit,
+    addToFavorite: (VideoData) -> Unit,
+    favorites: List<Favorite>?,
     deleteAllSearchHistory: () -> Unit
 ) {
     Scaffold(
@@ -62,18 +62,18 @@ fun MainScreen(
                         playVideoFullScreen = playVideoFullScreen,
                         isLoading = isLoading,
                         pageData = pageData,
-                        changePage = changePage
+                        changePage = changePage,
+                        addToFavorite = addToFavorite
                     )
                 }
 
                 Site.Favorites -> {
-                    Column(
-                        modifier = Modifier.fillMaxSize(),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center
-                    ) {
-                        Text("Nothing")
-                    }
+                    Favorites(
+                        favorites = favorites,
+                        getVideoUrl = getVideoUrl,
+                        playVideoFullScreen = playVideoFullScreen,
+                        addToFavorite = addToFavorite
+                    )
                 }
 
                 Site.Settings -> {

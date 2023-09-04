@@ -19,7 +19,8 @@ fun TabRowViedoListView(
     playVideoFullScreen: (String) -> Unit,
     isLoading: Boolean,
     pageData: PageData,
-    changePage: (String) -> Unit
+    changePage: (String) -> Unit,
+    addToFavorite: (VideoData) -> Unit
 ) {
     Column {
         when (selectedSite) {
@@ -61,7 +62,8 @@ fun TabRowViedoListView(
             playVideoFullScreen = playVideoFullScreen,
             isLoading = isLoading,
             pageData = pageData,
-            changePage = changePage
+            changePage = changePage,
+            addToFavorite = addToFavorite
         )
     }
 }

@@ -1,7 +1,13 @@
 package com.example.lifeplus.domain
 
-data class VideoData(
-    var id: Int,
+import androidx.room.Entity
+import androidx.room.PrimaryKey
+
+@Entity
+data class Favorite(
+    val timeStamp: Long,
+    @PrimaryKey
+    val videoId: Int,
     var title: String,
     var imageUrl: String,
     var detailUrl: String,
@@ -11,6 +17,5 @@ data class VideoData(
     val views: String,
     val rating: String,
     val added: String,
-    var videoUrl: String = "",
-    val isFavorite: Boolean = false
+    var videoUrl: String
 )

@@ -26,6 +26,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.example.lifeplus.domain.Favorite
 import com.example.lifeplus.domain.PageData
 import com.example.lifeplus.domain.SearchHistoryData
 import com.example.lifeplus.domain.Site
@@ -72,6 +73,7 @@ class MainActivity : ComponentActivity() {
                     val videoDatas by viewModel.videoDatas.collectAsStateWithLifecycle()
                     val pageData by viewModel.pageData.collectAsStateWithLifecycle()
                     val searchHistorys by viewModel.searchHistorys.observeAsState()
+                    val favorites by viewModel.favorites.observeAsState()
                     ModalNavigationDrawer(
                         drawerState = drawerState,
                         drawerContent = {
@@ -101,6 +103,8 @@ class MainActivity : ComponentActivity() {
                                 },
                                 isLoading = isLoading,
                                 changePage = { url -> viewModel.changePage(url) },
+                                addToFavorite = { videoData -> viewModel.addToFavorite(videoData) },
+                                favorites = favorites,
                                 deleteAllSearchHistory = { viewModel.deleteAllSearchHistory() }
                             )
                         }
@@ -129,6 +133,8 @@ fun MainNavHost(
     playVideoFullScreen: (String) -> Unit,
     isLoading: Boolean,
     changePage: (String) -> Unit,
+    addToFavorite: (VideoData) -> Unit,
+    favorites: List<Favorite>?,
     deleteAllSearchHistory: () -> Unit
 ) {
     NavHost(navController = navController, startDestination = Site.PornHub().name) {
@@ -146,6 +152,8 @@ fun MainNavHost(
                     playVideoFullScreen = playVideoFullScreen,
                     isLoading = isLoading,
                     changePage = changePage,
+                    addToFavorite = addToFavorite,
+                    favorites = favorites,
                     deleteAllSearchHistory = deleteAllSearchHistory
                 )
             }
