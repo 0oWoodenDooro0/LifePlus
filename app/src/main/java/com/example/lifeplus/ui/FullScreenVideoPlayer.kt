@@ -29,6 +29,7 @@ import androidx.media3.ui.AspectRatioFrameLayout
 import androidx.media3.ui.PlayerView
 import com.example.lifeplus.OnLifecycleEvent
 
+@Suppress("DEPRECATION")
 @Composable
 @SuppressLint("OpaqueUnitKey", "SourceLockedOrientationActivity")
 @androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
@@ -47,7 +48,7 @@ fun FullScreenVideoPlayer(uri: Uri, position: Long, setPlayerPosition: (Long) ->
     }
 
     val exoPlayer = remember {
-        ExoPlayer.Builder(context)
+        ExoPlayer.Builder(context).setSeekBackIncrementMs(10000).setSeekForwardIncrementMs(10000)
             .build()
             .apply {
                 val dataSourceFactory = DefaultHttpDataSource.Factory()
