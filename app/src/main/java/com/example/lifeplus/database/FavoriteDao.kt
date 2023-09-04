@@ -15,14 +15,11 @@ interface FavoriteDao {
     @Query("DELETE FROM favorite WHERE videoId = :videoId")
     suspend fun deleteById(videoId: Int)
 
-    @Query("UPDATE favorite SET videoUrl = :videoUrl WHERE videoId = :videoId")
-    suspend fun updateVideoUrlById(videoId: Int, videoUrl: String)
-
     @Query("SELECT EXISTS(SELECT * FROM favorite WHERE `videoId` = :videoId)")
     suspend fun isVideoIdExist(videoId: Int): Boolean
 
     @Query("SELECT * FROM favorite WHERE videoId = :videoId")
-    suspend fun getVideoUrlById(videoId: Int): Favorite
+    suspend fun getById(videoId: Int): Favorite
 
     @Query("SELECT * FROM favorite")
     fun getFavorites(): Flow<List<Favorite>>

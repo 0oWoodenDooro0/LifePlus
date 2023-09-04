@@ -268,25 +268,25 @@ class MainViewModel(private val lifeRepository: LifeRepository) : ViewModel() {
     }
 
 
-    fun getVideoSource(videoData: VideoData) {
-        viewModelScope.launch(Dispatchers.IO) {
-            try {
-                htmlPage = webClient.getPage(videoData.detailUrl)
-            } catch (_: IOException) {
+    fun getVideoSource(videoData: VideoData) = viewModelScope.launch(Dispatchers.IO) {
+        try {
+            htmlPage = webClient.getPage(videoData.detailUrl)
+        } catch (_: IOException) {
+        }
+        webClient.waitForBackgroundJavaScript(5000)
+        val vidUrl =
+            htmlPage.executeJavaScript("flashvars_${videoData.id}['mediaDefinitions'][flashvars_${videoData.id}['mediaDefinitions'].length - 2]['videoUrl']").javaScriptResult?.toString()
+                ?: ""
+        _videoDatas.update { videos ->
+            videos.map { video ->
+                if (video.id == videoData.id) {
+                    video.copy(videoUrl = vidUrl)
+                } else video
             }
-            webClient.waitForBackgroundJavaScript(5000)
-            val vidUrl =
-                htmlPage.executeJavaScript("flashvars_${videoData.id}['mediaDefinitions'][flashvars_${videoData.id}['mediaDefinitions'].length - 2]['videoUrl']").javaScriptResult?.toString()
-                    ?: ""
-            _videoDatas.update { videos ->
-                videos.map { video ->
-                    if (video.id == videoData.id) {
-                        video.copy(videoUrl = vidUrl)
-                    } else video
-                }
-            }
-            if (lifeRepository.favoriteByIdIsExist(videoData.id)) {
-                lifeRepository.updateVideoUrlById(videoData.id, vidUrl)
+        }
+        if (lifeRepository.favoriteByIdIsExist(videoData.id)) {
+            favorites.value?.filter { it.videoId == videoData.id }?.forEach {
+                lifeRepository.upsertFavorite(it.copy(videoUrl = vidUrl))
             }
         }
     }

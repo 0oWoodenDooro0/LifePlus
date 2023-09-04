@@ -10,7 +10,7 @@ class LifeRepository(
 ) {
 
     val searchHistorys: Flow<List<SearchHistoryData>> = searchHistoryDao.getMaxFourSearchHistory()
-    val favorites : Flow<List<Favorite>> = favoriteDao.getFavorites()
+    val favorites: Flow<List<Favorite>> = favoriteDao.getFavorites()
     suspend fun updateQuery(searchHistoryData: SearchHistoryData) =
         searchHistoryDao.updateQuery(searchHistoryData)
 
@@ -18,10 +18,8 @@ class LifeRepository(
 
     suspend fun upsertFavorite(favorite: Favorite) = favoriteDao.upsert(favorite)
     suspend fun deleteFavoriteById(videoId: Int) = favoriteDao.deleteById(videoId)
-    suspend fun updateVideoUrlById(videoId: Int, videoUrl: String) =
-        favoriteDao.updateVideoUrlById(videoId, videoUrl)
 
     suspend fun favoriteByIdIsExist(videoId: Int) = favoriteDao.isVideoIdExist(videoId)
 
-    suspend fun getFavoriteById(videoId: Int) = favoriteDao.getVideoUrlById(videoId)
+    suspend fun getFavoriteById(videoId: Int) = favoriteDao.getById(videoId)
 }
