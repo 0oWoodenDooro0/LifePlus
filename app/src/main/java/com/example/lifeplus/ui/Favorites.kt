@@ -10,29 +10,27 @@ import com.example.lifeplus.domain.VideoData
 
 @Composable
 fun Favorites(
-    favorites: List<Favorite>?,
+    favorites: List<Favorite>,
     getVideoUrl: (VideoData) -> Unit,
     playVideoFullScreen: (String) -> Unit,
     addToFavorite: (VideoData) -> Unit,
 ) {
-    val videos = favorites?.let {
-        it.map { favorite ->
-            VideoData(
-                id = favorite.videoId,
-                title = favorite.title,
-                imageUrl = favorite.imageUrl,
-                detailUrl = favorite.detailUrl,
-                previewUrl = favorite.previewUrl,
-                duration = favorite.duration,
-                modelUrl = favorite.modelUrl,
-                views = favorite.views,
-                rating = favorite.rating,
-                added = favorite.added,
-                videoUrl = favorite.videoUrl,
-                isFavorite = true
-            )
-        }
-    } ?: emptyList()
+    val videos = favorites.map { favorite ->
+        VideoData(
+            id = favorite.videoId,
+            title = favorite.title,
+            imageUrl = favorite.imageUrl,
+            detailUrl = favorite.detailUrl,
+            previewUrl = favorite.previewUrl,
+            duration = favorite.duration,
+            modelUrl = favorite.modelUrl,
+            views = favorite.views,
+            rating = favorite.rating,
+            added = favorite.added,
+            videoUrl = favorite.videoUrl,
+            isFavorite = true
+        )
+    }
     LazyVerticalGrid(columns = GridCells.Fixed(2), modifier = Modifier.fillMaxSize()) {
         items(count = videos.size,
             key = { videos[it].id },

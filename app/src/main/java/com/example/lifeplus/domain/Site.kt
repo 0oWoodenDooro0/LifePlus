@@ -1,7 +1,7 @@
 package com.example.lifeplus.domain
 
 
-sealed class Site(val name: String) {
+sealed class Site(val route: String) {
 
     data class PornHub(
         val tab: PornHubTab = PornHubTab.Recommanded(),
@@ -9,15 +9,15 @@ sealed class Site(val name: String) {
             PornHubTab.Recommanded(),
             PornHubTab.Videos()
         )
-    ) : Site(name = "PornHub")
+    ) : Site(route = "PornHub")
 
     data class Search(
         val tab: SearchTab = SearchTab.PornHub(),
         val tabs: List<SiteTab> = listOf(SearchTab.PornHub())
-    ) : Site(name = "Search")
+    ) : Site(route = "Search")
 
-    object Favorites : Site(name = "Favorites")
-    object Settings : Site(name = "Settings")
+    object Favorites : Site(route = "Favorites")
+    object Settings : Site(route = "Settings")
 
 }
 

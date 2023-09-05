@@ -1,9 +1,7 @@
 package com.example.lifeplus
 
-import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.asLiveData
 import androidx.lifecycle.viewModelScope
 import com.example.lifeplus.database.LifeRepository
 import com.example.lifeplus.domain.Favorite
@@ -18,7 +16,10 @@ import com.example.lifeplus.domain.VideoData
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
@@ -40,10 +41,18 @@ class MainViewModel(private val lifeRepository: LifeRepository) : ViewModel() {
     private val _selectedSite = MutableStateFlow<Site>(Site.PornHub())
     val selectedSite = _selectedSite.asStateFlow()
 
-    val searchHistorys: LiveData<List<SearchHistoryData>> =
-        lifeRepository.searchHistorys.asLiveData()
+    val searchHistorys: StateFlow<List<SearchHistoryData>> =
+        lifeRepository.searchHistorys.stateIn(
+            viewModelScope,
+            SharingStarted.WhileSubscribed(),
+            emptyList()
+        )
 
-    val favorites: LiveData<List<Favorite>> = lifeRepository.favorites.asLiveData()
+    val favorites: StateFlow<List<Favorite>> = lifeRepository.favorites.stateIn(
+        viewModelScope,
+        SharingStarted.WhileSubscribed(),
+        emptyList()
+    )
 
     private val _videoDatas = MutableStateFlow<List<VideoData>>(emptyList())
     val videoDatas = _videoDatas.asStateFlow()
@@ -228,7 +237,6 @@ class MainViewModel(private val lifeRepository: LifeRepository) : ViewModel() {
         webClient.options.isCssEnabled = false
         webClient.options.isThrowExceptionOnScriptError = false
         webClient.options.isThrowExceptionOnFailingStatusCode = false
-        changeTab(Site.PornHub().tab)
     }
 
     private fun upsert(searchHistory: SearchHistoryData) = viewModelScope.launch {
@@ -285,7 +293,7 @@ class MainViewModel(private val lifeRepository: LifeRepository) : ViewModel() {
             }
         }
         if (lifeRepository.favoriteByIdIsExist(videoData.id)) {
-            favorites.value?.filter { it.videoId == videoData.id }?.forEach {
+            favorites.value.filter { it.videoId == videoData.id }.forEach {
                 lifeRepository.upsertFavorite(it.copy(videoUrl = vidUrl))
             }
         }
