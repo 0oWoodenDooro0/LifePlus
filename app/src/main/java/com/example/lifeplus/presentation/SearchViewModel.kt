@@ -73,13 +73,7 @@ class SearchViewModel(
 
     fun changeSite(site: Site) {
         _currentSite.value = site
-        when (site) {
-            is Site.Search -> {
-                changeTab(site.tab)
-            }
-
-            else -> {}
-        }
+        changeTab((site as Site.Search).tab)
     }
 
     fun changeTab(tab: SiteTab, query: String = "") {

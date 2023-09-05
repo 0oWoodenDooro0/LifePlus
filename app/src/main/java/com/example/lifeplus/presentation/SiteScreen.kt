@@ -3,7 +3,10 @@ package com.example.lifeplus.presentation
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.ScrollableTabRow
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Tab
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -12,15 +15,14 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.lifeplus.LifeApp
-import com.example.lifeplus.domain.model.Site
 import com.example.lifeplus.core.util.encode
-import com.example.lifeplus.ui.TabRowViedoListView
+import com.example.lifeplus.domain.model.Site
 import com.example.lifeplus.ui.TopBar
+import com.example.lifeplus.ui.VideoListView
 
 @Composable
 fun SiteScreen(
     drawerClick: () -> Unit,
-    site: Site,
     application: LifeApp,
     navController: NavController,
     viewModel: SiteViewModel = viewModel(factory = SiteViewModel.SiteViewModelFactory(application.favoriteRepository))
@@ -35,15 +37,26 @@ fun SiteScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
+            val site = currentSite as Site.PornHub
+            val selectedPageIndex = site.tabs.indexOf(site.tab)
             LaunchedEffect(key1 = true) {
                 viewModel.changeSite(site)
             }
-            TabRowViedoListView(
-                selectedSite = currentSite,
-                changeTab = { tab -> viewModel.changeTab(tab) },
+            ScrollableTabRow(
+                selectedTabIndex = selectedPageIndex
+            ) {
+                site.tabs.forEach { tab ->
+                    Tab(
+                        text = { Text(text = tab.name) },
+                        selected = selectedPageIndex == tab.index,
+                        onClick = { viewModel.changeTab(tab) }
+                    )
+                }
+            }
+            VideoListView(
                 videos = videos,
-                getVideoUrl = { video -> viewModel.getVideoSource(video) },
-                playVideoFullScreen = {url -> navController.navigate("fullscreenPlayer/${url.encode()}")},
+                getVideoUrl = { url -> viewModel.getVideoSource(url) },
+                playVideoFullScreen = { url -> navController.navigate("fullscreenPlayer/${url.encode()}") },
                 isLoading = isLoading,
                 page = page,
                 changePage = { url -> viewModel.changePage(url) },

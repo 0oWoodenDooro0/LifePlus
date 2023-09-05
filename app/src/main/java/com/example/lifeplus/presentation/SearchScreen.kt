@@ -4,7 +4,10 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.ScrollableTabRow
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Tab
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -13,11 +16,11 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.lifeplus.LifeApp
-import com.example.lifeplus.domain.model.Site
 import com.example.lifeplus.core.util.encode
+import com.example.lifeplus.domain.model.Site
 import com.example.lifeplus.ui.SearchBox
-import com.example.lifeplus.ui.TabRowViedoListView
 import com.example.lifeplus.ui.TopBar
+import com.example.lifeplus.ui.VideoListView
 
 @Composable
 fun SearchScreen(
@@ -46,14 +49,25 @@ fun SearchScreen(
                 viewModel.changeSite(Site.Search())
             }
             Column {
+                val site = currentSite as Site.Search
+                val selectedPageIndex = site.tabs.indexOf(site.tab)
                 SearchBox(
                     search = { tab, query -> viewModel.changeTab(tab, query) },
-                    selectedTab = Site.Search().tab,
+                    selectedTab = site.tab,
                     searchHistorys = searchHistorys
                 )
-                TabRowViedoListView(
-                    selectedSite = currentSite,
-                    changeTab = { tab -> viewModel.changeTab(tab) },
+                ScrollableTabRow(
+                    selectedTabIndex = selectedPageIndex
+                ) {
+                    site.tabs.forEach { tab ->
+                        Tab(
+                            text = { Text(text = tab.name) },
+                            selected = selectedPageIndex == tab.index,
+                            onClick = { viewModel.changeTab(tab) }
+                        )
+                    }
+                }
+                VideoListView(
                     videos = videos,
                     getVideoUrl = { url -> viewModel.getVideoSource(url) },
                     playVideoFullScreen = { url -> navController.navigate("fullscreenPlayer/${url.encode()}") },
