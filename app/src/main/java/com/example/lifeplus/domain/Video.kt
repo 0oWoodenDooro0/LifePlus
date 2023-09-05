@@ -1,6 +1,6 @@
 package com.example.lifeplus.domain
 
-data class VideoData(
+data class Video(
     var id: Int,
     var title: String,
     var imageUrl: String,

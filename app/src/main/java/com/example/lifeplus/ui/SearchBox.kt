@@ -23,7 +23,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.example.lifeplus.R
-import com.example.lifeplus.domain.SearchHistoryData
+import com.example.lifeplus.domain.SearchHistory
 import com.example.lifeplus.domain.SearchTab
 import com.example.lifeplus.domain.SiteTab
 
@@ -32,7 +32,7 @@ import com.example.lifeplus.domain.SiteTab
 fun SearchBox(
     search: (SiteTab, String) -> Unit,
     selectedTab: SearchTab,
-    searchHistorys: List<SearchHistoryData>
+    searchHistorys: List<SearchHistory>
 ) {
     Column(
         modifier = Modifier

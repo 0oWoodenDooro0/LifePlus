@@ -37,17 +37,17 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.example.lifeplus.R
-import com.example.lifeplus.domain.PageData
-import com.example.lifeplus.domain.VideoData
+import com.example.lifeplus.domain.Page
+import com.example.lifeplus.domain.Video
 
 @Composable
 fun VideoListView(
-    videoDatas: List<VideoData>,
-    getVideoUrl: (VideoData) -> Unit,
+    videos: List<Video>,
+    getVideoUrl: (Video) -> Unit,
     playVideoFullScreen: (String) -> Unit,
-    addToFavorite: (VideoData) -> Unit,
+    addToFavorite: (Video) -> Unit,
     isLoading: Boolean,
-    pageData: PageData,
+    page: Page,
     changePage: (String) -> Unit
 ) {
     if (isLoading) {
@@ -59,7 +59,7 @@ fun VideoListView(
             CircularProgressIndicator(modifier = Modifier.width(64.dp))
         }
     } else {
-        if (videoDatas.isEmpty()) {
+        if (videos.isEmpty()) {
             Column(
                 modifier = Modifier.fillMaxSize(),
                 verticalArrangement = Arrangement.Center,
@@ -69,12 +69,12 @@ fun VideoListView(
             }
         } else {
             LazyVerticalGrid(columns = GridCells.Fixed(2), modifier = Modifier.fillMaxSize()) {
-                items(count = videoDatas.size,
-                    key = { videoDatas[it].id },
+                items(count = videos.size,
+                    key = { videos[it].id },
                     itemContent = { index ->
-                        val video = videoDatas[index]
+                        val video = videos[index]
                         VideoItem(
-                            videoData = video,
+                            video = video,
                             getVideoUrl = { videoData ->
                                 if (video.videoUrl.isEmpty()) {
                                     getVideoUrl(videoData)
@@ -87,11 +87,11 @@ fun VideoListView(
                 item(span = { GridItemSpan(2) }) {
                     Row {
                         Button(
-                            onClick = { pageData.previousUrl?.let(changePage) },
+                            onClick = { page.previousUrl?.let(changePage) },
                             modifier = Modifier
                                 .fillMaxWidth(0.25f)
                                 .padding(horizontal = 10.dp),
-                            enabled = !pageData.previousUrl.isNullOrEmpty()
+                            enabled = !page.previousUrl.isNullOrEmpty()
                         ) {
                             Icon(
                                 imageVector = Icons.Default.KeyboardArrowLeft,
@@ -101,14 +101,14 @@ fun VideoListView(
                         Button(
                             onClick = { }, modifier = Modifier.fillMaxWidth(0.25f)
                         ) {
-                            Text(text = pageData.currentPage)
+                            Text(text = page.currentPage)
                         }
                         Button(
-                            onClick = { pageData.nextUrl?.let(changePage) },
+                            onClick = { page.nextUrl?.let(changePage) },
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(horizontal = 10.dp),
-                            enabled = !pageData.nextUrl.isNullOrEmpty()
+                            enabled = !page.nextUrl.isNullOrEmpty()
                         ) {
                             Text(text = "See More")
                         }
@@ -122,10 +122,10 @@ fun VideoListView(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun VideoItem(
-    videoData: VideoData,
-    getVideoUrl: (VideoData) -> Unit,
+    video: Video,
+    getVideoUrl: (Video) -> Unit,
     playVideoFullScreen: (String) -> Unit,
-    addToFavorite: (VideoData) -> Unit
+    addToFavorite: (Video) -> Unit
 ) {
     var showVideoDialog by rememberSaveable { mutableStateOf(false) }
     Card(modifier = Modifier
@@ -134,13 +134,13 @@ fun VideoItem(
         elevation = CardDefaults.cardElevation(defaultElevation = 10.dp),
         onClick = {
             showVideoDialog = true
-            if (videoData.videoUrl == "") getVideoUrl(videoData)
+            if (video.videoUrl == "") getVideoUrl(video)
         }
     ) {
         Box {
             AsyncImage(
-                model = videoData.imageUrl,
-                contentDescription = videoData.title,
+                model = video.imageUrl,
+                contentDescription = video.title,
                 modifier = Modifier.fillMaxWidth(),
                 contentScale = ContentScale.FillWidth,
                 placeholder = painterResource(id = R.drawable.placeholder)
@@ -153,17 +153,17 @@ fun VideoItem(
                     .background(Color.Black.copy(alpha = 0.6f))
             ) {
                 Text(
-                    text = videoData.duration,
+                    text = video.duration,
                     modifier = Modifier.padding(2.dp),
                     color = Color.White,
                     fontSize = 12.sp
                 )
             }
         }
-        Text(text = videoData.title, modifier = Modifier.padding(5.dp), maxLines = 2)
+        Text(text = video.title, modifier = Modifier.padding(5.dp), maxLines = 2)
         Row {
             Text(
-                text = videoData.views,
+                text = video.views,
                 modifier = Modifier
                     .padding(5.dp)
                     .weight(1f)
@@ -174,7 +174,7 @@ fun VideoItem(
                     contentDescription = "ThumbUp",
                     modifier = Modifier.padding(4.dp)
                 )
-                Text(text = videoData.rating)
+                Text(text = video.rating)
             }
         }
     }
@@ -183,7 +183,7 @@ fun VideoItem(
             onDismiss = {
                 showVideoDialog = false
             },
-            videoData = videoData,
+            video = video,
             playVideoFullScreen = playVideoFullScreen,
             addToFavorite = addToFavorite
         )

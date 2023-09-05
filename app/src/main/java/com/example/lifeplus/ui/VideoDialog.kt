@@ -45,15 +45,15 @@ import androidx.media3.datasource.DefaultDataSource
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.source.ProgressiveMediaSource
 import androidx.media3.ui.PlayerView
-import com.example.lifeplus.domain.VideoData
+import com.example.lifeplus.domain.Video
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun VideoDialog(
     onDismiss: () -> Unit,
-    videoData: VideoData,
+    video: Video,
     playVideoFullScreen: (String) -> Unit,
-    addToFavorite: (VideoData) -> Unit
+    addToFavorite: (Video) -> Unit
 ) {
     Dialog(onDismissRequest = onDismiss) {
         Surface(
@@ -66,7 +66,7 @@ fun VideoDialog(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
-                    text = videoData.title,
+                    text = video.title,
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(5.dp)
@@ -74,29 +74,29 @@ fun VideoDialog(
                     textAlign = TextAlign.Center,
                     fontSize = 20.sp
                 )
-                VideoPlayer(uri = Uri.parse(videoData.previewUrl))
+                VideoPlayer(uri = Uri.parse(video.previewUrl))
                 Row {
                     Button(
                         onClick = {
-                            playVideoFullScreen(videoData.videoUrl)
+                            playVideoFullScreen(video.videoUrl)
                         },
                         modifier = Modifier
                             .padding(5.dp)
                             .weight(1f),
-                        enabled = videoData.videoUrl.isNotEmpty()
+                        enabled = video.videoUrl.isNotEmpty()
                     ) {
                         Text(
-                            text = if (videoData.videoUrl != "") "Watch" else "Preparing",
+                            text = if (video.videoUrl != "") "Watch" else "Preparing",
                             textAlign = TextAlign.Center
                         )
                     }
                     IconToggleButton(
-                        checked = videoData.isFavorite,
-                        onCheckedChange = { addToFavorite(videoData) },
+                        checked = video.isFavorite,
+                        onCheckedChange = { addToFavorite(video) },
                         modifier = Modifier.padding(5.dp)
                     ) {
                         val icon =
-                            if (videoData.isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder
+                            if (video.isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder
                         Icon(imageVector = icon, contentDescription = "Favorite")
                     }
                 }

@@ -13,6 +13,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -21,19 +22,23 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.media3.common.MediaItem
 import androidx.media3.datasource.DefaultHttpDataSource
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.hls.HlsMediaSource
 import androidx.media3.ui.AspectRatioFrameLayout
 import androidx.media3.ui.PlayerView
+import com.example.lifeplus.MainViewModel
 import com.example.lifeplus.OnLifecycleEvent
 
 @Suppress("DEPRECATION")
 @Composable
 @SuppressLint("OpaqueUnitKey", "SourceLockedOrientationActivity")
 @androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
-fun FullScreenVideoPlayer(uri: Uri, position: Long, setPlayerPosition: (Long) -> Unit) {
+fun FullScreenVideoPlayer(uri: Uri, viewModel: MainViewModel = viewModel()) {
+    val position by viewModel.playerPosition.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val activity = context as Activity
     activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
@@ -80,7 +85,7 @@ fun FullScreenVideoPlayer(uri: Uri, position: Long, setPlayerPosition: (Long) ->
     ) {
         onDispose {
             exoPlayer.playWhenReady = false
-            setPlayerPosition(exoPlayer.currentPosition)
+            viewModel.setPlayerPosition(exoPlayer.currentPosition)
             exoPlayer.release()
             activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
         }
@@ -98,7 +103,7 @@ fun FullScreenVideoPlayer(uri: Uri, position: Long, setPlayerPosition: (Long) ->
 
             Lifecycle.Event.ON_DESTROY -> {
                 exoPlayer.playWhenReady = false
-                setPlayerPosition(exoPlayer.currentPosition)
+                viewModel.setPlayerPosition(exoPlayer.currentPosition)
                 exoPlayer.release()
                 activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
             }

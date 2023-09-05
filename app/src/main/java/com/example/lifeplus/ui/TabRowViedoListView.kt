@@ -5,22 +5,22 @@ import androidx.compose.material3.ScrollableTabRow
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import com.example.lifeplus.domain.PageData
+import com.example.lifeplus.domain.Page
 import com.example.lifeplus.domain.Site
 import com.example.lifeplus.domain.SiteTab
-import com.example.lifeplus.domain.VideoData
+import com.example.lifeplus.domain.Video
 
 @Composable
 fun TabRowViedoListView(
     selectedSite: Site,
     changeTab: (SiteTab) -> Unit,
-    videoDatas: List<VideoData>,
-    getVideoUrl: (VideoData) -> Unit,
+    videos: List<Video>,
+    getVideoUrl: (Video) -> Unit,
     playVideoFullScreen: (String) -> Unit,
     isLoading: Boolean,
-    pageData: PageData,
+    page: Page,
     changePage: (String) -> Unit,
-    addToFavorite: (VideoData) -> Unit
+    addToFavorite: (Video) -> Unit
 ) {
     Column {
         when (selectedSite) {
@@ -57,11 +57,11 @@ fun TabRowViedoListView(
             else -> {}
         }
         VideoListView(
-            videoDatas = videoDatas,
+            videos = videos,
             getVideoUrl = getVideoUrl,
             playVideoFullScreen = playVideoFullScreen,
             isLoading = isLoading,
-            pageData = pageData,
+            page = page,
             changePage = changePage,
             addToFavorite = addToFavorite
         )

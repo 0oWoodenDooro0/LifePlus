@@ -5,10 +5,10 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import com.example.lifeplus.domain.Favorite
-import com.example.lifeplus.domain.SearchHistoryData
+import com.example.lifeplus.domain.SearchHistory
 
 @Database(
-    entities = [SearchHistoryData::class, Favorite::class], version = 3, exportSchema = false
+    entities = [SearchHistory::class, Favorite::class], version = 3, exportSchema = false
 )
 abstract class LifeDatabase : RoomDatabase() {
     abstract val searchHistoryDao: SearchHistoryDao

@@ -4,29 +4,29 @@ import androidx.room.Dao
 import androidx.room.Query
 import androidx.room.Transaction
 import androidx.room.Upsert
-import com.example.lifeplus.domain.SearchHistoryData
+import com.example.lifeplus.domain.SearchHistory
 import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface SearchHistoryDao {
     @Upsert
-    suspend fun upsert(searchHistoryData: SearchHistoryData)
+    suspend fun upsert(searchHistory: SearchHistory)
 
     @Query("DELETE FROM searchhistory WHERE `query` = :query")
     suspend fun deleteByQuery(query: String)
 
     @Query("SELECT * FROM searchhistory ORDER BY id DESC LIMIT 4")
-    fun getMaxFourSearchHistory(): Flow<List<SearchHistoryData>>
+    fun getMaxFourSearchHistory(): Flow<List<SearchHistory>>
 
     @Query("SELECT EXISTS(SELECT * FROM searchhistory WHERE `query` = :query)")
     suspend fun isQueryExist(query: String): Boolean
 
     @Transaction
-    suspend fun updateQuery(searchHistoryData: SearchHistoryData){
-        if(isQueryExist(searchHistoryData.query)){
-            deleteByQuery(searchHistoryData.query)
+    suspend fun updateQuery(searchHistory: SearchHistory){
+        if(isQueryExist(searchHistory.query)){
+            deleteByQuery(searchHistory.query)
         }
-        upsert(searchHistoryData)
+        upsert(searchHistory)
     }
 
     @Query("DELETE FROM searchhistory")
