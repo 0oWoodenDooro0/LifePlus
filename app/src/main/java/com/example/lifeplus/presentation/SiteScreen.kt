@@ -1,5 +1,6 @@
 package com.example.lifeplus.presentation
 
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
@@ -37,31 +38,33 @@ fun SiteScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
-            val site = currentSite as Site.PornHub
-            val selectedPageIndex = site.tabs.indexOf(site.tab)
             LaunchedEffect(key1 = true) {
-                viewModel.changeSite(site)
+                viewModel.changeSite(Site.PornHub())
             }
-            ScrollableTabRow(
-                selectedTabIndex = selectedPageIndex
-            ) {
-                site.tabs.forEach { tab ->
-                    Tab(
-                        text = { Text(text = tab.name) },
-                        selected = selectedPageIndex == tab.index,
-                        onClick = { viewModel.changeTab(tab) }
-                    )
+            Column {
+                val site = currentSite as Site.PornHub
+                val selectedPageIndex = site.tabs.indexOf(site.tab)
+                ScrollableTabRow(
+                    selectedTabIndex = selectedPageIndex
+                ) {
+                    site.tabs.forEach { tab ->
+                        Tab(
+                            text = { Text(text = tab.name) },
+                            selected = selectedPageIndex == tab.index,
+                            onClick = { viewModel.changeTab(tab) }
+                        )
+                    }
                 }
+                VideoListView(
+                    videos = videos,
+                    getVideoUrl = { url -> viewModel.getVideoSource(url) },
+                    playVideoFullScreen = { url -> navController.navigate("fullscreenPlayer/${url.encode()}") },
+                    isLoading = isLoading,
+                    page = page,
+                    changePage = { url -> viewModel.changePage(url) },
+                    addToFavorite = { video -> viewModel.addToFavorite(video) }
+                )
             }
-            VideoListView(
-                videos = videos,
-                getVideoUrl = { url -> viewModel.getVideoSource(url) },
-                playVideoFullScreen = { url -> navController.navigate("fullscreenPlayer/${url.encode()}") },
-                isLoading = isLoading,
-                page = page,
-                changePage = { url -> viewModel.changePage(url) },
-                addToFavorite = { video -> viewModel.addToFavorite(video) }
-            )
         }
     }
 }
