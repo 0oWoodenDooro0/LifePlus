@@ -1,4 +1,4 @@
-package com.example.lifeplus.domain
+package com.example.lifeplus.domain.model
 
 
 sealed class Site(val route: String) {

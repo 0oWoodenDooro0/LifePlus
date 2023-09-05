@@ -1,6 +1,7 @@
-package com.example.lifeplus.database
+package com.example.lifeplus.data.repository
 
-import com.example.lifeplus.domain.Favorite
+import com.example.lifeplus.data.local.FavoriteDao
+import com.example.lifeplus.data.local.entity.Favorite
 import kotlinx.coroutines.flow.Flow
 
 class FavoriteRepository(

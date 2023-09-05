@@ -1,9 +1,9 @@
-package com.example.lifeplus.database
+package com.example.lifeplus.data.local
 
 import androidx.room.Dao
 import androidx.room.Query
 import androidx.room.Upsert
-import com.example.lifeplus.domain.Favorite
+import com.example.lifeplus.data.local.entity.Favorite
 import kotlinx.coroutines.flow.Flow
 
 @Dao

@@ -1,4 +1,4 @@
-package com.example.lifeplus.domain
+package com.example.lifeplus.data.local.entity
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey

@@ -1,4 +1,4 @@
-package com.example.lifeplus.ui
+package com.example.lifeplus.presentation
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -12,14 +12,17 @@ import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import com.example.lifeplus.MyApplication
-import com.example.lifeplus.domain.Site
-import com.example.lifeplus.encode
+import com.example.lifeplus.LifeApp
+import com.example.lifeplus.domain.model.Site
+import com.example.lifeplus.core.util.encode
+import com.example.lifeplus.ui.SearchBox
+import com.example.lifeplus.ui.TabRowViedoListView
+import com.example.lifeplus.ui.TopBar
 
 @Composable
 fun SearchScreen(
     drawerClick: () -> Unit,
-    application: MyApplication,
+    application: LifeApp,
     navController: NavController,
     viewModel: SearchViewModel = viewModel(
         factory = SearchViewModel.SearchViewModelFactory(

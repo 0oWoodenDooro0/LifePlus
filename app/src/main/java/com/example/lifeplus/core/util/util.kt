@@ -1,4 +1,4 @@
-package com.example.lifeplus
+package com.example.lifeplus.core.util
 
 import java.net.URLDecoder
 import java.net.URLEncoder

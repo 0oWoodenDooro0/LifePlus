@@ -1,10 +1,10 @@
-package com.example.lifeplus.database
+package com.example.lifeplus.data.local
 
 import androidx.room.Dao
 import androidx.room.Query
 import androidx.room.Transaction
 import androidx.room.Upsert
-import com.example.lifeplus.domain.SearchHistory
+import com.example.lifeplus.data.local.entity.SearchHistory
 import kotlinx.coroutines.flow.Flow
 
 @Dao

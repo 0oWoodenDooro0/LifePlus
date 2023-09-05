@@ -1,11 +1,11 @@
 package com.example.lifeplus
 
 import android.app.Application
-import com.example.lifeplus.database.LifeDatabase
-import com.example.lifeplus.database.FavoriteRepository
-import com.example.lifeplus.database.SearchHistoryRepository
+import com.example.lifeplus.data.local.LifeDatabase
+import com.example.lifeplus.data.repository.FavoriteRepository
+import com.example.lifeplus.data.repository.SearchHistoryRepository
 
-class MyApplication : Application() {
+class LifeApp : Application() {
 
     private val database by lazy { LifeDatabase.getDatabase(this) }
     val favoriteRepository by lazy { FavoriteRepository(database.favoriteDao) }

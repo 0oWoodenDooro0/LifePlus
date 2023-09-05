@@ -45,7 +45,7 @@ import androidx.media3.datasource.DefaultDataSource
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.source.ProgressiveMediaSource
 import androidx.media3.ui.PlayerView
-import com.example.lifeplus.domain.Video
+import com.example.lifeplus.domain.model.Video
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable

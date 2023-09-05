@@ -1,11 +1,11 @@
-package com.example.lifeplus.database
+package com.example.lifeplus.data.local
 
 import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
-import com.example.lifeplus.domain.Favorite
-import com.example.lifeplus.domain.SearchHistory
+import com.example.lifeplus.data.local.entity.Favorite
+import com.example.lifeplus.data.local.entity.SearchHistory
 
 @Database(
     entities = [SearchHistory::class, Favorite::class], version = 3, exportSchema = false

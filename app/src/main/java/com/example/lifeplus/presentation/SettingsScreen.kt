@@ -1,4 +1,4 @@
-package com.example.lifeplus.ui
+package com.example.lifeplus.presentation
 
 import android.app.Activity
 import androidx.compose.foundation.clickable
@@ -15,12 +15,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.lifeplus.MyApplication
+import com.example.lifeplus.LifeApp
+import com.example.lifeplus.ui.TopBar
 
 @Composable
-fun Settings(
+fun SettingsScreen(
     drawerClick: () -> Unit,
-    application: MyApplication,
+    application: LifeApp,
     viewModel: SettingsViewModel = viewModel(
         factory = SettingsViewModel.SettingsViewModelFactory(application.searchHistoryRepository)
     )

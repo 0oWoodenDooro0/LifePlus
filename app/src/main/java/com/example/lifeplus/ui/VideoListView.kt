@@ -37,8 +37,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.example.lifeplus.R
-import com.example.lifeplus.domain.Page
-import com.example.lifeplus.domain.Video
+import com.example.lifeplus.domain.model.Page
+import com.example.lifeplus.domain.model.Video
 
 @Composable
 fun VideoListView(

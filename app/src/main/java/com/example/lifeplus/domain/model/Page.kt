@@ -1,4 +1,4 @@
-package com.example.lifeplus.domain
+package com.example.lifeplus.domain.model
 
 data class Page(
     var previousUrl: String? = null,

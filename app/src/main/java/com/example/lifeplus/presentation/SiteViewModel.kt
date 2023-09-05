@@ -1,17 +1,15 @@
-package com.example.lifeplus.ui
+package com.example.lifeplus.presentation
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import com.example.lifeplus.database.FavoriteRepository
-import com.example.lifeplus.database.SearchHistoryRepository
-import com.example.lifeplus.domain.Favorite
-import com.example.lifeplus.domain.Page
-import com.example.lifeplus.domain.SearchHistory
-import com.example.lifeplus.domain.SearchTab
-import com.example.lifeplus.domain.Site
-import com.example.lifeplus.domain.SiteTab
-import com.example.lifeplus.domain.Video
+import com.example.lifeplus.data.repository.FavoriteRepository
+import com.example.lifeplus.data.local.entity.Favorite
+import com.example.lifeplus.domain.model.Page
+import com.example.lifeplus.domain.model.PornHubTab
+import com.example.lifeplus.domain.model.Site
+import com.example.lifeplus.domain.model.SiteTab
+import com.example.lifeplus.domain.model.Video
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -29,10 +27,7 @@ import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import java.io.IOException
 
-class SearchViewModel(
-    private val favoriteRepository: FavoriteRepository,
-    private val searchHistoryRepository: SearchHistoryRepository
-) : ViewModel() {
+class SiteViewModel(private val favoriteRepository: FavoriteRepository) : ViewModel() {
 
     private var webClient: WebClient = WebClient(BrowserVersion.FIREFOX)
     private lateinit var htmlPage: HtmlPage
@@ -52,17 +47,8 @@ class SearchViewModel(
     private val _page = MutableStateFlow(Page())
     val page = _page.asStateFlow()
 
-    val searchHistorys: StateFlow<List<SearchHistory>> =
-        searchHistoryRepository.searchHistorys.stateIn(
-            viewModelScope,
-            SharingStarted.WhileSubscribed(),
-            emptyList()
-        )
-
     private val favorites: StateFlow<List<Favorite>> = favoriteRepository.favorites.stateIn(
-        viewModelScope,
-        SharingStarted.WhileSubscribed(),
-        emptyList()
+        viewModelScope, SharingStarted.WhileSubscribed(), emptyList()
     )
 
     init {
@@ -72,9 +58,10 @@ class SearchViewModel(
     }
 
     fun changeSite(site: Site) {
-        _currentSite.value = site
         when (site) {
-            is Site.Search -> {
+            is Site.PornHub -> {
+                _currentSite.value = site
+                baseUrl = "https://pornhub.com"
                 changeTab(site.tab)
             }
 
@@ -82,23 +69,15 @@ class SearchViewModel(
         }
     }
 
-    fun changeTab(tab: SiteTab, query: String = "") {
+    fun changeTab(tab: SiteTab) {
         when (_currentSite.value) {
-            is Site.Search -> {
+            is Site.PornHub -> {
+                baseUrl = "https://pornhub.com"
+                _currentSite.value = Site.PornHub(tab as PornHubTab)
                 when (tab) {
-                    is SearchTab.PornHub -> {
-                        baseUrl = "https://www.pornhub.com"
-                        if (query != "") {
-                            val url = "https://www.pornhub.com/video/search?search=$query"
-                            val cssQuery =
-                                "ul#videoSearchResult li.pcVideoListItem.js-pop.videoblock"
-                            loadSite(url, cssQuery)
-                            upsert(SearchHistory(query))
-                        } else {
-                            job?.run { if (isActive) cancel() }
-                            _isLoading.value = false
-                            _videos.value = emptyList()
-                        }
+                    is PornHubTab.Recommanded, is PornHubTab.Videos -> {
+                        val cssQuery = ".container li.pcVideoListItem.js-pop.videoblock"
+                        loadSite(baseUrl + tab.url, cssQuery)
                     }
                 }
             }
@@ -109,10 +88,10 @@ class SearchViewModel(
 
     fun changePage(url: String) {
         when (_currentSite.value) {
-            is Site.Search -> {
-                when ((_currentSite.value as Site.Search).tab) {
-                    is SearchTab.PornHub -> {
-                        val cssQuery = "ul#videoSearchResult li.pcVideoListItem.js-pop.videoblock"
+            is Site.PornHub -> {
+                when ((_currentSite.value as Site.PornHub).tab) {
+                    is PornHubTab.Recommanded, is PornHubTab.Videos -> {
+                        val cssQuery = ".container li.pcVideoListItem.js-pop.videoblock"
                         loadSite(url, cssQuery)
                     }
                 }
@@ -165,16 +144,14 @@ class SearchViewModel(
                         val previewUrl = imageData.selectFirst("img")?.attr("data-mediabook") ?: ""
                         val duration =
                             imageData.selectFirst("div.marker-overlays.js-noFade var.duration")
-                                ?.text()
-                                ?: ""
+                                ?.text() ?: ""
                         val modelUrl = videoDetail.selectFirst("a")?.attr("href")?.let {
                             baseUrl + it
                         } ?: ""
                         val views = videoDetail.selectFirst("span.views")?.text() ?: ""
                         val rating =
                             videoDetail.selectFirst("div.rating-container.neutral > div.value")
-                                ?.text()
-                                ?: ""
+                                ?.text() ?: ""
                         val added = videoDetail.selectFirst("var.added")?.text() ?: ""
                         Video(
                             id = id,
@@ -196,14 +173,12 @@ class SearchViewModel(
                 _page.value = page?.let {
                     val currentPage = it.selectFirst("li.page_current")?.text() ?: "1"
                     val pageUrl = it.select("a.orangeButton")
-                    val previousPage =
-                        if (pageUrl[0].attr("href")
-                                .isNullOrEmpty()
-                        ) null else baseUrl + pageUrl[0].attr("href")
-                    val nextPage =
-                        if (pageUrl[1].attr("href")
-                                .isNullOrEmpty()
-                        ) null else baseUrl + pageUrl[1].attr("href")
+                    val previousPage = if (pageUrl[0].attr("href")
+                            .isNullOrEmpty()
+                    ) null else baseUrl + pageUrl[0].attr("href")
+                    val nextPage = if (pageUrl[1].attr("href")
+                            .isNullOrEmpty()
+                    ) null else baseUrl + pageUrl[1].attr("href")
                     Page(previousPage, currentPage, nextPage)
                 } ?: Page()
                 _isLoading.value = false
@@ -220,11 +195,12 @@ class SearchViewModel(
         val vidUrl =
             htmlPage.executeJavaScript("flashvars_${video.id}['mediaDefinitions'][flashvars_${video.id}['mediaDefinitions'].length - 2]['videoUrl']").javaScriptResult?.toString()
                 ?: ""
+        println(vidUrl)
         _videos.update { videos ->
             videos.map { vid ->
                 if (video.id == vid.id) {
-                    video.copy(videoUrl = vidUrl)
-                } else video
+                    vid.copy(videoUrl = vidUrl)
+                } else vid
             }
         }
         if (favoriteRepository.favoriteByIdIsExist(video.id)) {
@@ -232,10 +208,6 @@ class SearchViewModel(
                 favoriteRepository.upsertFavorite(it.copy(videoUrl = vidUrl))
             }
         }
-    }
-
-    private fun upsert(searchHistory: SearchHistory) = viewModelScope.launch {
-        searchHistoryRepository.updateQuery(searchHistory)
     }
 
     fun addToFavorite(video: Video) = viewModelScope.launch(Dispatchers.IO) {
@@ -261,24 +233,19 @@ class SearchViewModel(
         }
         _videos.update { videos ->
             videos.map { vid ->
-                if (video.id == vid.id) video.copy(isFavorite = !video.isFavorite) else video
+                if (video.id == vid.id) vid.copy(isFavorite = !vid.isFavorite) else vid
             }
         }
     }
 
-    class SearchViewModelFactory(
-        private val favoriteRepository: FavoriteRepository,
-        private val searchHistoryRepository: SearchHistoryRepository
-    ) :
+    class SiteViewModelFactory(private val favoriteRepository: FavoriteRepository) :
         ViewModelProvider.Factory {
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
-            if (modelClass.isAssignableFrom(SearchViewModel::class.java)) {
-                @Suppress("UNCHECKED_CAST") return SearchViewModel(
-                    favoriteRepository,
-                    searchHistoryRepository
-                ) as T
+            if (modelClass.isAssignableFrom(SiteViewModel::class.java)) {
+                @Suppress("UNCHECKED_CAST") return SiteViewModel(favoriteRepository) as T
             }
             throw IllegalArgumentException("Unknown VieModel Class")
         }
     }
+
 }

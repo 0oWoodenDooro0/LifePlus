@@ -19,15 +19,16 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import com.example.lifeplus.domain.Site
-import com.example.lifeplus.domain.Sites
+import com.example.lifeplus.domain.model.Site
+import com.example.lifeplus.domain.model.Sites
 import com.example.lifeplus.ui.DrawerSheet
-import com.example.lifeplus.ui.FavoritesScreen
-import com.example.lifeplus.ui.FullScreenVideoPlayer
-import com.example.lifeplus.ui.SearchScreen
-import com.example.lifeplus.ui.Settings
-import com.example.lifeplus.ui.SiteScreen
+import com.example.lifeplus.presentation.FavoritesScreen
+import com.example.lifeplus.presentation.FullScreenPlayerScreen
+import com.example.lifeplus.presentation.SearchScreen
+import com.example.lifeplus.presentation.SettingsScreen
+import com.example.lifeplus.presentation.SiteScreen
 import com.example.lifeplus.ui.theme.LifePlusTheme
+import com.example.lifeplus.core.util.decode
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import kotlinx.coroutines.launch
 
@@ -65,7 +66,7 @@ class MainActivity : ComponentActivity() {
                         navController = navController,
                         startDestination = Site.PornHub().route
                     ) {
-                        val application = application as MyApplication
+                        val application = application as LifeApp
                         Sites.listOfDrawer.forEach { site ->
                             composable(route = site.route) {
                                 when (currentRoute) {
@@ -95,7 +96,7 @@ class MainActivity : ComponentActivity() {
                                     }
 
                                     Site.Settings.route -> {
-                                        Settings(
+                                        SettingsScreen(
                                             drawerClick = { scope.launch { drawerState.open() } },
                                             application = application
                                         )
@@ -109,7 +110,7 @@ class MainActivity : ComponentActivity() {
                                 })
                             ) {
                                 val videoUrl = it.arguments?.getString("videoUrl") ?: ""
-                                FullScreenVideoPlayer(uri = Uri.parse(videoUrl.decode()))
+                                FullScreenPlayerScreen(uri = Uri.parse(videoUrl.decode()))
                             }
                         }
                     }

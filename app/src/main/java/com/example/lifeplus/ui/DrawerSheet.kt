@@ -20,8 +20,8 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.example.lifeplus.R
-import com.example.lifeplus.domain.Site
-import com.example.lifeplus.domain.Sites
+import com.example.lifeplus.domain.model.Site
+import com.example.lifeplus.domain.model.Sites
 
 @Composable
 fun DrawerSheet(

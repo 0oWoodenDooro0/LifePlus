@@ -1,4 +1,4 @@
-package com.example.lifeplus.ui
+package com.example.lifeplus.presentation
 
 import android.annotation.SuppressLint
 import android.app.Activity
@@ -30,14 +30,13 @@ import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.hls.HlsMediaSource
 import androidx.media3.ui.AspectRatioFrameLayout
 import androidx.media3.ui.PlayerView
-import com.example.lifeplus.MainViewModel
-import com.example.lifeplus.OnLifecycleEvent
+import com.example.lifeplus.ui.util.OnLifecycleEvent
 
 @Suppress("DEPRECATION")
 @Composable
 @SuppressLint("OpaqueUnitKey", "SourceLockedOrientationActivity")
 @androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
-fun FullScreenVideoPlayer(uri: Uri, viewModel: MainViewModel = viewModel()) {
+fun FullScreenPlayerScreen(uri: Uri, viewModel: FullScreenPlayerViewModel = viewModel()) {
     val position by viewModel.playerPosition.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val activity = context as Activity

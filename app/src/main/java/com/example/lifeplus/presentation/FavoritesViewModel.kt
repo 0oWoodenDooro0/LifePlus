@@ -1,11 +1,11 @@
-package com.example.lifeplus.ui
+package com.example.lifeplus.presentation
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import com.example.lifeplus.database.FavoriteRepository
-import com.example.lifeplus.domain.Favorite
-import com.example.lifeplus.domain.Video
+import com.example.lifeplus.data.repository.FavoriteRepository
+import com.example.lifeplus.data.local.entity.Favorite
+import com.example.lifeplus.domain.model.Video
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted

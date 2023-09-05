@@ -1,9 +1,9 @@
-package com.example.lifeplus.ui
+package com.example.lifeplus.presentation
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import com.example.lifeplus.database.SearchHistoryRepository
+import com.example.lifeplus.data.repository.SearchHistoryRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 

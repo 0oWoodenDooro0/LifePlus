@@ -1,6 +1,7 @@
-package com.example.lifeplus.database
+package com.example.lifeplus.data.repository
 
-import com.example.lifeplus.domain.SearchHistory
+import com.example.lifeplus.data.local.SearchHistoryDao
+import com.example.lifeplus.data.local.entity.SearchHistory
 import kotlinx.coroutines.flow.Flow
 
 class SearchHistoryRepository(

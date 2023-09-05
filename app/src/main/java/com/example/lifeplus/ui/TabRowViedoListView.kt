@@ -5,10 +5,10 @@ import androidx.compose.material3.ScrollableTabRow
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import com.example.lifeplus.domain.Page
-import com.example.lifeplus.domain.Site
-import com.example.lifeplus.domain.SiteTab
-import com.example.lifeplus.domain.Video
+import com.example.lifeplus.domain.model.Page
+import com.example.lifeplus.domain.model.Site
+import com.example.lifeplus.domain.model.SiteTab
+import com.example.lifeplus.domain.model.Video
 
 @Composable
 fun TabRowViedoListView(

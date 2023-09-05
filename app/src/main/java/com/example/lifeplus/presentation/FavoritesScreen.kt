@@ -1,4 +1,4 @@
-package com.example.lifeplus.ui
+package com.example.lifeplus.presentation
 
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -12,14 +12,16 @@ import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import com.example.lifeplus.MyApplication
-import com.example.lifeplus.domain.Video
-import com.example.lifeplus.encode
+import com.example.lifeplus.LifeApp
+import com.example.lifeplus.domain.model.Video
+import com.example.lifeplus.core.util.encode
+import com.example.lifeplus.ui.TopBar
+import com.example.lifeplus.ui.VideoItem
 
 @Composable
 fun FavoritesScreen(
     drawerClick: () -> Unit,
-    application: MyApplication,
+    application: LifeApp,
     navController: NavController,
     viewModel: FavoritesViewModel = viewModel(
         factory = FavoritesViewModel.FavoritesViewModelFactory(application.favoriteRepository)
