@@ -7,7 +7,6 @@ import android.net.Uri
 import android.os.Build
 import android.view.ViewGroup
 import android.view.WindowInsets
-import android.view.WindowInsetsController
 import android.view.WindowManager
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.fillMaxSize
@@ -32,7 +31,6 @@ import androidx.media3.ui.AspectRatioFrameLayout
 import androidx.media3.ui.PlayerView
 import com.example.lifeplus.ui.util.OnLifecycleEvent
 
-@Suppress("DEPRECATION")
 @Composable
 @SuppressLint("OpaqueUnitKey", "SourceLockedOrientationActivity")
 @androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
@@ -47,7 +45,6 @@ fun FullScreenPlayerScreen(uri: Uri, viewModel: FullScreenPlayerViewModel = view
     } else {
         activity.window.insetsController?.apply {
             hide(WindowInsets.Type.statusBars() or WindowInsetsCompat.Type.navigationBars())
-            systemBarsBehavior = WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
         }
     }
 
@@ -68,7 +65,6 @@ fun FullScreenPlayerScreen(uri: Uri, viewModel: FullScreenPlayerViewModel = view
     fun onDispose() {
         exoPlayer.playWhenReady = false
         viewModel.setPlayerPosition(exoPlayer.currentPosition)
-        exoPlayer.release()
         WindowCompat.setDecorFitsSystemWindows(activity.window, true)
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) {
             activity.window.clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN)
@@ -78,6 +74,7 @@ fun FullScreenPlayerScreen(uri: Uri, viewModel: FullScreenPlayerViewModel = view
             }
         }
         activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+        exoPlayer.release()
     }
 
     DisposableEffect(
