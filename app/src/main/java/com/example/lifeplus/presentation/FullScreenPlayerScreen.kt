@@ -7,6 +7,7 @@ import android.net.Uri
 import android.os.Build
 import android.view.ViewGroup
 import android.view.WindowInsets
+import android.view.WindowInsetsController
 import android.view.WindowManager
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.fillMaxSize
@@ -23,10 +24,7 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.media3.common.MediaItem
-import androidx.media3.datasource.DefaultHttpDataSource
 import androidx.media3.exoplayer.ExoPlayer
-import androidx.media3.exoplayer.hls.HlsMediaSource
 import androidx.media3.ui.AspectRatioFrameLayout
 import androidx.media3.ui.PlayerView
 import com.example.lifeplus.ui.util.OnLifecycleEvent
@@ -45,17 +43,17 @@ fun FullScreenPlayerScreen(uri: Uri, viewModel: FullScreenPlayerViewModel = view
     } else {
         activity.window.insetsController?.apply {
             hide(WindowInsets.Type.statusBars() or WindowInsetsCompat.Type.navigationBars())
+            systemBarsBehavior = WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
         }
     }
+
+    viewModel.setVideoUri(uri)
 
     val exoPlayer = remember {
         ExoPlayer.Builder(context).setSeekBackIncrementMs(10000).setSeekForwardIncrementMs(10000)
             .build()
             .apply {
-                val dataSourceFactory = DefaultHttpDataSource.Factory()
-                val hlsDataSourceFactory = HlsMediaSource.Factory(dataSourceFactory)
-                val source = hlsDataSourceFactory.createMediaSource(MediaItem.fromUri(uri))
-                setMediaSource(source)
+                setMediaSource(viewModel.source)
                 playWhenReady = true
                 seekTo(position)
                 prepare()
@@ -103,10 +101,11 @@ fun FullScreenPlayerScreen(uri: Uri, viewModel: FullScreenPlayerViewModel = view
     OnLifecycleEvent { _, event ->
         when (event) {
             Lifecycle.Event.ON_RESUME -> {
-                exoPlayer.playWhenReady = true
+                exoPlayer.playWhenReady = viewModel.isPause.value
             }
 
             Lifecycle.Event.ON_PAUSE -> {
+                viewModel.setPause(exoPlayer.playWhenReady)
                 exoPlayer.playWhenReady = false
             }
 
