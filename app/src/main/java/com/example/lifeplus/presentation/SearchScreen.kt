@@ -17,7 +17,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.lifeplus.LifeApp
 import com.example.lifeplus.core.util.encode
-import com.example.lifeplus.domain.model.Site
+import com.example.lifeplus.domain.model.Search
 import com.example.lifeplus.ui.SearchBox
 import com.example.lifeplus.ui.TopBar
 import com.example.lifeplus.ui.VideoListView
@@ -46,20 +46,20 @@ fun SearchScreen(
                 .padding(paddingValues)
         ) {
             LaunchedEffect(key1 = true) {
-                viewModel.changeSite(Site.Search())
+                viewModel.changeTab(Search.PornHub())
             }
             Column {
-                val site = currentSite as Site.Search
-                val selectedPageIndex = site.tabs.indexOf(site.tab)
+                val searchTabs = listOf(Search.PornHub())
+                val selectedPageIndex = searchTabs.indexOf(currentSite)
                 SearchBox(
                     search = { tab, query -> viewModel.changeTab(tab, query) },
-                    selectedTab = site.tab,
+                    selectedTab = currentSite,
                     searchHistorys = searchHistorys
                 )
                 ScrollableTabRow(
                     selectedTabIndex = selectedPageIndex
                 ) {
-                    site.tabs.forEach { tab ->
+                    searchTabs.forEach { tab ->
                         Tab(
                             text = { Text(text = tab.name) },
                             selected = selectedPageIndex == tab.index,

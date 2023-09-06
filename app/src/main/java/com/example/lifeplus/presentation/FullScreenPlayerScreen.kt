@@ -65,6 +65,21 @@ fun FullScreenPlayerScreen(uri: Uri, viewModel: FullScreenPlayerViewModel = view
             }
     }
 
+    fun onDispose() {
+        exoPlayer.playWhenReady = false
+        viewModel.setPlayerPosition(exoPlayer.currentPosition)
+        exoPlayer.release()
+        WindowCompat.setDecorFitsSystemWindows(activity.window, true)
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) {
+            activity.window.clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN)
+        } else {
+            activity.window.insetsController?.apply {
+                show(WindowInsets.Type.statusBars() or WindowInsetsCompat.Type.navigationBars())
+            }
+        }
+        activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+    }
+
     DisposableEffect(
         AndroidView(
             factory = {
@@ -83,12 +98,10 @@ fun FullScreenPlayerScreen(uri: Uri, viewModel: FullScreenPlayerViewModel = view
         )
     ) {
         onDispose {
-            exoPlayer.playWhenReady = false
-            viewModel.setPlayerPosition(exoPlayer.currentPosition)
-            exoPlayer.release()
-            activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+            onDispose()
         }
     }
+
 
     OnLifecycleEvent { _, event ->
         when (event) {
@@ -101,10 +114,7 @@ fun FullScreenPlayerScreen(uri: Uri, viewModel: FullScreenPlayerViewModel = view
             }
 
             Lifecycle.Event.ON_DESTROY -> {
-                exoPlayer.playWhenReady = false
-                viewModel.setPlayerPosition(exoPlayer.currentPosition)
-                exoPlayer.release()
-                activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+                onDispose()
             }
 
             else -> Unit

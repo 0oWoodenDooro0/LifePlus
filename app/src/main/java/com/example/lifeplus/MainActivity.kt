@@ -36,8 +36,8 @@ class MainActivity : ComponentActivity() {
                 val navBackStackEntry by navController.currentBackStackEntryAsState()
                 val currentRoute = navBackStackEntry?.destination?.route ?: ""
                 ModalNavigationDrawer(drawerState = drawerState, drawerContent = {
-                    DrawerSheet(currentRoute = currentRoute, drawerItemOnClick = { site ->
-                        navController.navigate(site.route) {
+                    DrawerSheet(currentRoute = currentRoute, drawerItemOnClick = { item ->
+                        navController.navigate(item.route) {
                             navController.graph.startDestinationRoute?.let { route ->
                                 popUpTo(route) {
                                     saveState = true
@@ -51,7 +51,6 @@ class MainActivity : ComponentActivity() {
                 }, content = {
                     MainNavHost(
                         navController = navController,
-                        currentRoute = currentRoute,
                         drawerClick = { scope.launch { drawerState.open() } },
                         application = application as LifeApp,
                     )

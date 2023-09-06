@@ -20,12 +20,11 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.example.lifeplus.R
-import com.example.lifeplus.domain.model.Site
-import com.example.lifeplus.domain.model.Sites
+import com.example.lifeplus.domain.model.DrawerItem
 
 @Composable
 fun DrawerSheet(
-    currentRoute: String, drawerItemOnClick: (Site) -> Unit
+    currentRoute: String, drawerItemOnClick: (DrawerItem) -> Unit
 ) {
     ModalDrawerSheet {
         Spacer(Modifier.height(16.dp))
@@ -34,27 +33,28 @@ fun DrawerSheet(
             modifier = Modifier.padding(horizontal = 28.dp, vertical = 16.dp),
             fontSize = MaterialTheme.typography.titleSmall.fontSize
         )
-        Sites.listOfSite.forEach { site ->
+        val sites = listOf(DrawerItem.PornHub)
+        sites.forEach { item ->
             NavigationDrawerItem(
                 label = {
                     Text(
-                        text = site.route,
+                        text = item.title,
                         textAlign = TextAlign.Center,
                         modifier = Modifier.padding(10.dp),
                         fontSize = MaterialTheme.typography.labelLarge.fontSize
                     )
                 },
-                selected = currentRoute == site.route,
-                onClick = { drawerItemOnClick(site) },
+                selected = currentRoute == item.route,
+                onClick = { drawerItemOnClick(item) },
                 icon = {
-                    val iconId = if (currentRoute == site.route) {
+                    val iconId = if (currentRoute == item.route) {
                         R.drawable.baseline_explore_24
                     } else {
                         R.drawable.outline_explore_24
                     }
                     Icon(
                         painter = painterResource(id = iconId),
-                        contentDescription = site.route
+                        contentDescription = item.route
                     )
                 },
                 modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
@@ -64,30 +64,30 @@ fun DrawerSheet(
         NavigationDrawerItem(
             label = {
                 Text(
-                    text = Site.Search().route,
+                    text = DrawerItem.Search.title,
                     textAlign = TextAlign.Center,
                     modifier = Modifier.padding(10.dp),
                     fontSize = MaterialTheme.typography.labelLarge.fontSize
                 )
             },
-            selected = currentRoute == Site.Search().route,
-            onClick = { drawerItemOnClick(Site.Search()) },
+            selected = currentRoute == DrawerItem.Search.route,
+            onClick = { drawerItemOnClick(DrawerItem.Search) },
             icon = { Icon(imageVector = Icons.Default.Search, contentDescription = "Search") },
             modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
         )
         NavigationDrawerItem(
             label = {
                 Text(
-                    text = Site.Favorites.route,
+                    text = DrawerItem.Favorites.title,
                     textAlign = TextAlign.Center,
                     modifier = Modifier.padding(10.dp),
                     fontSize = MaterialTheme.typography.labelLarge.fontSize
                 )
             },
-            selected = currentRoute == Site.Favorites.route,
-            onClick = { drawerItemOnClick(Site.Favorites) },
+            selected = currentRoute == DrawerItem.Favorites.route,
+            onClick = { drawerItemOnClick(DrawerItem.Favorites) },
             icon = {
-                val iconVector = if (currentRoute == Site.Favorites.route) {
+                val iconVector = if (currentRoute == DrawerItem.Favorites.route) {
                     Icons.Default.Favorite
                 } else {
                     Icons.Default.FavoriteBorder
@@ -102,16 +102,16 @@ fun DrawerSheet(
         NavigationDrawerItem(
             label = {
                 Text(
-                    text = Site.Settings.route,
+                    text = DrawerItem.Settings.title,
                     textAlign = TextAlign.Center,
                     modifier = Modifier.padding(10.dp),
                     fontSize = MaterialTheme.typography.labelLarge.fontSize
                 )
             },
-            selected = currentRoute == Site.Settings.route,
-            onClick = { drawerItemOnClick(Site.Settings) },
+            selected = currentRoute == DrawerItem.Settings.route,
+            onClick = { drawerItemOnClick(DrawerItem.Settings) },
             icon = {
-                val iconId = if (currentRoute == Site.Settings.route) {
+                val iconId = if (currentRoute == DrawerItem.Settings.route) {
                     R.drawable.baseline_settings_24
                 } else {
                     R.drawable.outline_settings_24

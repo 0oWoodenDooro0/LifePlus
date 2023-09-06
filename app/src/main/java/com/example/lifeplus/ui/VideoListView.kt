@@ -184,7 +184,10 @@ fun VideoItem(
                 showVideoDialog = false
             },
             video = video,
-            playVideoFullScreen = playVideoFullScreen,
+            playVideoFullScreen = { url->
+                showVideoDialog = false
+                playVideoFullScreen(url)
+            },
             addToFavorite = addToFavorite
         )
     }

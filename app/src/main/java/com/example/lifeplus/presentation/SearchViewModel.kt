@@ -3,14 +3,12 @@ package com.example.lifeplus.presentation
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.example.lifeplus.data.local.entity.Favorite
+import com.example.lifeplus.data.local.entity.SearchHistory
 import com.example.lifeplus.data.repository.FavoriteRepository
 import com.example.lifeplus.data.repository.SearchHistoryRepository
-import com.example.lifeplus.data.local.entity.Favorite
 import com.example.lifeplus.domain.model.Page
-import com.example.lifeplus.data.local.entity.SearchHistory
-import com.example.lifeplus.domain.model.SearchTab
-import com.example.lifeplus.domain.model.Site
-import com.example.lifeplus.domain.model.SiteTab
+import com.example.lifeplus.domain.model.Search
 import com.example.lifeplus.domain.model.Video
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -40,7 +38,7 @@ class SearchViewModel(
 
     private var job: Job? = null
 
-    private val _currentSite = MutableStateFlow<Site>(Site.PornHub())
+    private val _currentSite = MutableStateFlow<Search>(Search.PornHub())
     val currentSite = _currentSite.asStateFlow()
 
     private val _isLoading = MutableStateFlow(false)
@@ -71,48 +69,32 @@ class SearchViewModel(
         webClient.options.isThrowExceptionOnFailingStatusCode = false
     }
 
-    fun changeSite(site: Site) {
-        _currentSite.value = site
-        changeTab((site as Site.Search).tab)
-    }
-
-    fun changeTab(tab: SiteTab, query: String = "") {
+    fun changeTab(tab: Search, query: String = "") {
+        _currentSite.value = tab
         when (_currentSite.value) {
-            is Site.Search -> {
-                when (tab) {
-                    is SearchTab.PornHub -> {
-                        baseUrl = "https://www.pornhub.com"
-                        if (query != "") {
-                            val url = "https://www.pornhub.com/video/search?search=$query"
-                            val cssQuery =
-                                "ul#videoSearchResult li.pcVideoListItem.js-pop.videoblock"
-                            loadSite(url, cssQuery)
-                            upsert(SearchHistory(query))
-                        } else {
-                            job?.run { if (isActive) cancel() }
-                            _isLoading.value = false
-                            _videos.value = emptyList()
-                        }
-                    }
+            is Search.PornHub -> {
+                baseUrl = "https://www.pornhub.com"
+                if (query != "") {
+                    val url = "https://www.pornhub.com/video/search?search=$query"
+                    val cssQuery =
+                        "ul#videoSearchResult li.pcVideoListItem.js-pop.videoblock"
+                    loadSite(url, cssQuery)
+                    upsert(SearchHistory(query))
+                } else {
+                    job?.run { if (isActive) cancel() }
+                    _isLoading.value = false
+                    _videos.value = emptyList()
                 }
             }
-
-            else -> {}
         }
     }
 
     fun changePage(url: String) {
         when (_currentSite.value) {
-            is Site.Search -> {
-                when ((_currentSite.value as Site.Search).tab) {
-                    is SearchTab.PornHub -> {
-                        val cssQuery = "ul#videoSearchResult li.pcVideoListItem.js-pop.videoblock"
-                        loadSite(url, cssQuery)
-                    }
-                }
+            is Search.PornHub -> {
+                val cssQuery = "ul#videoSearchResult li.pcVideoListItem.js-pop.videoblock"
+                loadSite(url, cssQuery)
             }
-
-            else -> {}
         }
     }
 

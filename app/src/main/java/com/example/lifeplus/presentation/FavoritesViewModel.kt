@@ -3,27 +3,22 @@ package com.example.lifeplus.presentation
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import com.example.lifeplus.data.repository.FavoriteRepository
 import com.example.lifeplus.data.local.entity.Favorite
+import com.example.lifeplus.data.repository.FavoriteRepository
 import com.example.lifeplus.domain.model.Video
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.htmlunit.BrowserVersion
 import org.htmlunit.WebClient
 import org.htmlunit.html.HtmlPage
-import java.io.IOException
 
 class FavoritesViewModel(private val favoriteRepository: FavoriteRepository) : ViewModel() {
 
     private var webClient: WebClient = WebClient(BrowserVersion.FIREFOX)
     private lateinit var htmlPage: HtmlPage
-
-    private val _videos = MutableStateFlow<List<Video>>(emptyList())
 
     val favorites: StateFlow<List<Favorite>> = favoriteRepository.favorites.stateIn(
         viewModelScope,
@@ -32,26 +27,18 @@ class FavoritesViewModel(private val favoriteRepository: FavoriteRepository) : V
     )
 
     fun getVideoSource(video: Video) = viewModelScope.launch(Dispatchers.IO) {
-        try {
-            htmlPage = webClient.getPage(video.detailUrl)
-        } catch (_: IOException) {
-        }
-        webClient.waitForBackgroundJavaScript(5000)
-        val vidUrl =
-            htmlPage.executeJavaScript("flashvars_${video.id}['mediaDefinitions'][flashvars_${video.id}['mediaDefinitions'].length - 2]['videoUrl']").javaScriptResult?.toString()
-                ?: ""
-        _videos.update { videos ->
-            videos.map { vid ->
-                if (video.id == vid.id) {
-                    vid.copy(videoUrl = vidUrl)
-                } else vid
-            }
-        }
-        if (favoriteRepository.favoriteByIdIsExist(video.id)) {
-            favorites.value.filter { it.videoId == video.id }.forEach {
-                favoriteRepository.upsertFavorite(it.copy(videoUrl = vidUrl))
-            }
-        }
+        TODO()
+//        try {
+//            htmlPage = webClient.getPage(video.detailUrl)
+//        } catch (_: IOException) {
+//        }
+//        webClient.waitForBackgroundJavaScript(5000)
+//        val vidUrl =
+//            htmlPage.executeJavaScript("flashvars_${video.id}['mediaDefinitions'][flashvars_${video.id}['mediaDefinitions'].length - 2]['videoUrl']").javaScriptResult?.toString()
+//                ?: ""
+//        favorites.value.filter { it.videoId == video.id }.forEach {
+//            favoriteRepository.upsertFavorite(it.copy(videoUrl = vidUrl))
+//        }
     }
 
     fun addToFavorite(video: Video) = viewModelScope.launch(Dispatchers.IO) {
@@ -74,11 +61,6 @@ class FavoritesViewModel(private val favoriteRepository: FavoriteRepository) : V
                     videoUrl = video.videoUrl
                 )
             )
-        }
-        _videos.update { videos ->
-            videos.map { vid ->
-                if (video.id == vid.id) vid.copy(isFavorite = !vid.isFavorite) else vid
-            }
         }
     }
 

@@ -64,8 +64,6 @@ class SiteViewModel(private val favoriteRepository: FavoriteRepository) : ViewMo
                 baseUrl = "https://pornhub.com"
                 changeTab(site.tab)
             }
-
-            else -> {}
         }
     }
 
@@ -81,8 +79,6 @@ class SiteViewModel(private val favoriteRepository: FavoriteRepository) : ViewMo
                     }
                 }
             }
-
-            else -> {}
         }
     }
 
@@ -96,8 +92,6 @@ class SiteViewModel(private val favoriteRepository: FavoriteRepository) : ViewMo
                     }
                 }
             }
-
-            else -> {}
         }
     }
 
@@ -195,7 +189,6 @@ class SiteViewModel(private val favoriteRepository: FavoriteRepository) : ViewMo
         val vidUrl =
             htmlPage.executeJavaScript("flashvars_${video.id}['mediaDefinitions'][flashvars_${video.id}['mediaDefinitions'].length - 2]['videoUrl']").javaScriptResult?.toString()
                 ?: ""
-        println(vidUrl)
         _videos.update { videos ->
             videos.map { vid ->
                 if (video.id == vid.id) {
