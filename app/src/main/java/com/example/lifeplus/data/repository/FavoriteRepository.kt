@@ -11,6 +11,7 @@ class FavoriteRepository(
 
     suspend fun upsert(favorite: Favorite) = favoriteDao.upsert(favorite)
     suspend fun deleteById(id: Int) = favoriteDao.deleteById(id)
+    suspend fun isIdExist(id:Int) = favoriteDao.isIdExist(id)
     suspend fun updateVideoUrlById(id: Int, videoUrl: String) =
         favoriteDao.updateVideoUrlById(id, videoUrl)
 }

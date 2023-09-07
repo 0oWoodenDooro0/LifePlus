@@ -13,8 +13,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.lifeplus.LifeApp
-import com.example.lifeplus.domain.model.Video
 import com.example.lifeplus.core.util.encode
+import com.example.lifeplus.data.local.entity.toVideo
 import com.example.lifeplus.ui.TopBar
 import com.example.lifeplus.ui.VideoItem
 
@@ -26,7 +26,8 @@ fun FavoritesScreen(
     viewModel: FavoritesViewModel = viewModel(
         factory = FavoritesViewModel.FavoritesViewModelFactory(
             application.favoriteRepository,
-            application.getVideoSource
+            application.getVideoSource,
+            application.addToFavorite
         )
     )
 ) {
@@ -38,20 +39,7 @@ fun FavoritesScreen(
                 .padding(paddingValues)
         ) {
             val videos = favorites.map { favorite ->
-                Video(
-                    id = favorite.videoId,
-                    title = favorite.title,
-                    imageUrl = favorite.imageUrl,
-                    detailUrl = favorite.detailUrl,
-                    previewUrl = favorite.previewUrl,
-                    duration = favorite.duration,
-                    modelUrl = favorite.modelUrl,
-                    views = favorite.views,
-                    rating = favorite.rating,
-                    added = favorite.added,
-                    videoUrl = favorite.videoUrl,
-                    isFavorite = true
-                )
+                favorite.toVideo()
             }
             LazyVerticalGrid(columns = GridCells.Fixed(2), modifier = Modifier.fillMaxSize()) {
                 items(count = videos.size,
@@ -62,7 +50,7 @@ fun FavoritesScreen(
                             video = video,
                             getVideoUrl = { videoData ->
                                 if (video.videoUrl.isEmpty()) {
-                                    viewModel.getVideoUrl(videoData)
+                                    viewModel.getVideoSource(videoData)
                                 }
                             },
                             playVideoFullScreen = { url -> navController.navigate("fullscreenPlayer/${url.encode()}") },

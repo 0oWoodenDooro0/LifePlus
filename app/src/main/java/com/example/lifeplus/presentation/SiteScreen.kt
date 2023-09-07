@@ -33,9 +33,9 @@ fun SiteScreen(
     navController: NavController,
     viewModel: SiteViewModel = viewModel(
         factory = SiteViewModel.SiteViewModelFactory(
-            application.favoriteRepository,
             application.getSiteVideos,
-            application.getVideoSource
+            application.getVideoSource,
+            application.addToFavorite
         )
     )
 ) {

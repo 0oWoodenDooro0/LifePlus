@@ -1,12 +1,14 @@
 package com.example.lifeplus.domain.model
 
+import com.example.lifeplus.data.local.entity.Favorite
+
 data class Video(
-    var id: Int,
-    var title: String,
-    var imageUrl: String,
-    var detailUrl: String,
-    var previewUrl: String,
-    var duration: String,
+    val id: Int,
+    val title: String,
+    val imageUrl: String,
+    val detailUrl: String,
+    val previewUrl: String,
+    val duration: String,
     val modelUrl: String,
     val views: String,
     val rating: String,
@@ -14,3 +16,20 @@ data class Video(
     var videoUrl: String = "",
     val isFavorite: Boolean = false
 )
+
+fun Video.toFavorite(): Favorite {
+    return Favorite(
+        timeStamp = System.currentTimeMillis(),
+        id = this.id,
+        title = this.title,
+        imageUrl = this.imageUrl,
+        detailUrl = this.detailUrl,
+        previewUrl = this.previewUrl,
+        duration = this.duration,
+        modelUrl = this.modelUrl,
+        views = this.views,
+        rating = this.rating,
+        added = this.added,
+        videoUrl = this.videoUrl
+    )
+}

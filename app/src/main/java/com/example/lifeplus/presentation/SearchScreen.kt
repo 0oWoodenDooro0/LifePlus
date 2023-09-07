@@ -34,10 +34,10 @@ fun SearchScreen(
     navController: NavController,
     viewModel: SearchViewModel = viewModel(
         factory = SearchViewModel.SearchViewModelFactory(
-            application.favoriteRepository,
             application.searchHistoryRepository,
             application.getSiteVideos,
-            application.getVideoSource
+            application.getVideoSource,
+            application.addToFavorite
         )
     )
 ) {
