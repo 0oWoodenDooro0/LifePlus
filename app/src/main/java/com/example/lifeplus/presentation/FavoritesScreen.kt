@@ -26,7 +26,7 @@ fun FavoritesScreen(
     viewModel: FavoritesViewModel = viewModel(
         factory = FavoritesViewModel.FavoritesViewModelFactory(
             application.favoriteRepository,
-            application.videoRepository
+            application.getVideoSource
         )
     )
 ) {
@@ -62,7 +62,7 @@ fun FavoritesScreen(
                             video = video,
                             getVideoUrl = { videoData ->
                                 if (video.videoUrl.isEmpty()) {
-                                    viewModel.getVideoSource(videoData)
+                                    viewModel.getVideoUrl(videoData)
                                 }
                             },
                             playVideoFullScreen = { url -> navController.navigate("fullscreenPlayer/${url.encode()}") },

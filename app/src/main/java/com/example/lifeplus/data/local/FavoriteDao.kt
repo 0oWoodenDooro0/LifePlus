@@ -2,6 +2,7 @@ package com.example.lifeplus.data.local
 
 import androidx.room.Dao
 import androidx.room.Query
+import androidx.room.Transaction
 import androidx.room.Upsert
 import com.example.lifeplus.data.local.entity.Favorite
 import kotlinx.coroutines.flow.Flow
@@ -15,12 +16,17 @@ interface FavoriteDao {
     @Query("DELETE FROM favorite WHERE videoId = :videoId")
     suspend fun deleteById(videoId: Int)
 
-    @Query("SELECT EXISTS(SELECT * FROM favorite WHERE `videoId` = :videoId)")
-    suspend fun isVideoIdExist(videoId: Int): Boolean
-
     @Query("SELECT * FROM favorite WHERE videoId = :videoId")
-    suspend fun getById(videoId: Int): Favorite
+    suspend fun getById(videoId: Int): Favorite?
 
     @Query("SELECT * FROM favorite")
     fun getFavorites(): Flow<List<Favorite>>
+
+    @Transaction
+    suspend fun updateVideoUrlById(id: Int, videoUrl: String){
+        getById(id)?.let {
+            upsert(it.copy(videoUrl = videoUrl))
+        }
+    }
+
 }

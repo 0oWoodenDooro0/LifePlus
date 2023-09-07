@@ -36,7 +36,8 @@ fun SearchScreen(
         factory = SearchViewModel.SearchViewModelFactory(
             application.favoriteRepository,
             application.searchHistoryRepository,
-            application.videoRepository
+            application.getSiteVideos,
+            application.getVideoSource
         )
     )
 ) {
@@ -77,7 +78,7 @@ fun SearchScreen(
                 }
                 Box(modifier = Modifier.pullRefresh(pullRefreshState)) {
                     VideoListView(
-                        getVideoUrl = { url -> viewModel.getVideoSource(url) },
+                        getVideoUrl = { url -> viewModel.getVideoUrl(url) },
                         playVideoFullScreen = { url -> navController.navigate("fullscreenPlayer/${url.encode()}") },
                         isLoading = isLoading,
                         page = page,

@@ -5,31 +5,26 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.lifeplus.data.local.entity.Favorite
 import com.example.lifeplus.data.repository.FavoriteRepository
-import com.example.lifeplus.data.repository.VideoRepository
 import com.example.lifeplus.domain.model.Page
 import com.example.lifeplus.domain.model.PornHubTab
 import com.example.lifeplus.domain.model.Site
 import com.example.lifeplus.domain.model.SiteTab
 import com.example.lifeplus.domain.model.Video
+import com.example.lifeplus.domain.use_case.GetSiteVideosUseCase
+import com.example.lifeplus.domain.use_case.GetVideoSourceUseCase
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class SiteViewModel(
     private val favoriteRepository: FavoriteRepository,
-    private val videoRepository: VideoRepository
+    private val getSiteVideos: GetSiteVideosUseCase,
+    private val getVideoSource: GetVideoSourceUseCase
 ) : ViewModel() {
 
-    private lateinit var baseUrl: String
     private lateinit var currentUrl: String
-
-    private var job: Job? = null
 
     private val _currentSite = MutableStateFlow<Site>(Site.PornHub())
     val currentSite = _currentSite.asStateFlow()
@@ -43,15 +38,10 @@ class SiteViewModel(
     private val _page = MutableStateFlow(Page())
     val page = _page.asStateFlow()
 
-    private val favorites: StateFlow<List<Favorite>> = favoriteRepository.favorites.stateIn(
-        viewModelScope, SharingStarted.WhileSubscribed(), emptyList()
-    )
-
     fun changeSite(site: Site) {
         _currentSite.value = site
         when (site) {
             is Site.PornHub -> {
-                baseUrl = "https://pornhub.com"
                 changeTab(site.tab)
             }
         }
@@ -60,9 +50,8 @@ class SiteViewModel(
     fun changeTab(tab: SiteTab) {
         when (_currentSite.value) {
             is Site.PornHub -> {
-                baseUrl = "https://pornhub.com"
                 _currentSite.value = Site.PornHub(tab as PornHubTab)
-                currentUrl = baseUrl + tab.url
+                currentUrl = "https://pornhub.com" + tab.url
                 loadSite(currentUrl, tab.cssQuery, _isLoading)
             }
         }
@@ -87,37 +76,18 @@ class SiteViewModel(
         }
     }
 
-    private fun loadSite(url: String, cssQuery: String, loading: MutableStateFlow<Boolean>) {
-        job?.run { if (isActive) cancel() }
-        job = viewModelScope.launch(Dispatchers.IO) {
-            loading.value = true
-            _page.value = videoRepository.fetchVideoList(url, cssQuery)
-            loading.value = false
-        }
-    }
+    private fun loadSite(url: String, cssQuery: String, loading: MutableStateFlow<Boolean>) =
+        viewModelScope.launch(Dispatchers.IO) { _page.value = getSiteVideos(url, cssQuery, loading) }
 
-    fun getVideoSource(video: Video) = viewModelScope.launch(Dispatchers.IO) {
-        val vidUrl = videoRepository.fetchVideoSource(video.detailUrl, video.id)
-        _page.update { page ->
-            val videos = page.videos.map { vid ->
-                if (video.id == vid.id) {
-                    vid.copy(videoUrl = vidUrl)
-                } else vid
-            }
-            page.copy(videos = videos)
-        }
-        if (favoriteRepository.favoriteByIdIsExist(video.id)) {
-            favorites.value.filter { it.videoId == video.id }.forEach {
-                favoriteRepository.upsertFavorite(it.copy(videoUrl = vidUrl))
-            }
-        }
+    fun getVideoUrl(video: Video) = viewModelScope.launch(Dispatchers.IO) {
+        _page.value = getVideoSource(video, _page)
     }
 
     fun addToFavorite(video: Video) = viewModelScope.launch(Dispatchers.IO) {
         if (video.isFavorite) {
-            favoriteRepository.deleteFavoriteById(video.id)
+            favoriteRepository.deleteById(video.id)
         } else {
-            favoriteRepository.upsertFavorite(
+            favoriteRepository.upsert(
                 Favorite(
                     timeStamp = System.currentTimeMillis(),
                     videoId = video.id,
@@ -144,14 +114,13 @@ class SiteViewModel(
 
     class SiteViewModelFactory(
         private val favoriteRepository: FavoriteRepository,
-        private val videoRepository: VideoRepository
-    ) :
-        ViewModelProvider.Factory {
+        private val getSiteVideos: GetSiteVideosUseCase,
+        private val getVideoSource: GetVideoSourceUseCase
+    ) : ViewModelProvider.Factory {
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
             if (modelClass.isAssignableFrom(SiteViewModel::class.java)) {
                 @Suppress("UNCHECKED_CAST") return SiteViewModel(
-                    favoriteRepository,
-                    videoRepository
+                    favoriteRepository, getSiteVideos, getVideoSource
                 ) as T
             }
             throw IllegalArgumentException("Unknown VieModel Class")

@@ -7,12 +7,12 @@ import com.example.lifeplus.data.local.entity.Favorite
 import com.example.lifeplus.data.local.entity.SearchHistory
 import com.example.lifeplus.data.repository.FavoriteRepository
 import com.example.lifeplus.data.repository.SearchHistoryRepository
-import com.example.lifeplus.data.repository.VideoRepository
 import com.example.lifeplus.domain.model.Page
 import com.example.lifeplus.domain.model.SearchTab
 import com.example.lifeplus.domain.model.Video
+import com.example.lifeplus.domain.use_case.GetSiteVideosUseCase
+import com.example.lifeplus.domain.use_case.GetVideoSourceUseCase
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -24,13 +24,11 @@ import kotlinx.coroutines.launch
 class SearchViewModel(
     private val favoriteRepository: FavoriteRepository,
     private val searchHistoryRepository: SearchHistoryRepository,
-    private val videoRepository: VideoRepository
+    private val getSiteVideos: GetSiteVideosUseCase,
+    private val getVideoSource: GetVideoSourceUseCase
 ) : ViewModel() {
 
-    private lateinit var baseUrl: String
     private lateinit var currentUrl: String
-
-    private var job: Job? = null
 
     private val _currentSite = MutableStateFlow<SearchTab>(SearchTab.PornHub)
     val currentSite = _currentSite.asStateFlow()
@@ -46,28 +44,18 @@ class SearchViewModel(
 
     val searchHistorys: StateFlow<List<SearchHistory>> =
         searchHistoryRepository.searchHistorys.stateIn(
-            viewModelScope,
-            SharingStarted.WhileSubscribed(),
-            emptyList()
+            viewModelScope, SharingStarted.WhileSubscribed(), emptyList()
         )
-
-    private val favorites: StateFlow<List<Favorite>> = favoriteRepository.favorites.stateIn(
-        viewModelScope,
-        SharingStarted.WhileSubscribed(),
-        emptyList()
-    )
 
     fun changeTab(tab: SearchTab, query: String = "") {
         _currentSite.value = tab
         when (_currentSite.value) {
             SearchTab.PornHub -> {
-                baseUrl = "https://www.pornhub.com"
                 if (query != "") {
                     currentUrl = tab.url + query
                     loadSite(currentUrl, tab.cssQuery, _isLoading)
                     upsert(SearchHistory(query))
                 } else {
-                    job?.run { if (isActive) cancel() }
                     _isLoading.value = false
                 }
             }
@@ -91,30 +79,13 @@ class SearchViewModel(
         }
     }
 
-    private fun loadSite(url: String, cssQuery: String, loading: MutableStateFlow<Boolean>) {
-        job?.run { if (isActive) cancel() }
-        job = viewModelScope.launch(Dispatchers.IO) {
-            loading.value = true
-            _page.value = videoRepository.fetchVideoList(url, cssQuery)
-            loading.value = false
+    private fun loadSite(url: String, cssQuery: String, loading: MutableStateFlow<Boolean>) =
+        viewModelScope.launch(Dispatchers.IO) {
+            _page.value = getSiteVideos(url, cssQuery, loading)
         }
-    }
 
-    fun getVideoSource(video: Video) = viewModelScope.launch(Dispatchers.IO) {
-        val vidUrl = videoRepository.fetchVideoSource(video.detailUrl, video.id)
-        _page.update { page ->
-            val videos = page.videos.map { vid ->
-                if (video.id == vid.id) {
-                    vid.copy(videoUrl = vidUrl)
-                } else vid
-            }
-            page.copy(videos = videos)
-        }
-        if (favoriteRepository.favoriteByIdIsExist(video.id)) {
-            favorites.value.filter { it.videoId == video.id }.forEach {
-                favoriteRepository.upsertFavorite(it.copy(videoUrl = vidUrl))
-            }
-        }
+    fun getVideoUrl(video: Video) = viewModelScope.launch(Dispatchers.IO) {
+        _page.value = getVideoSource(video, _page)
     }
 
     private fun upsert(searchHistory: SearchHistory) = viewModelScope.launch {
@@ -123,9 +94,9 @@ class SearchViewModel(
 
     fun addToFavorite(video: Video) = viewModelScope.launch(Dispatchers.IO) {
         if (video.isFavorite) {
-            favoriteRepository.deleteFavoriteById(video.id)
+            favoriteRepository.deleteById(video.id)
         } else {
-            favoriteRepository.upsertFavorite(
+            favoriteRepository.upsert(
                 Favorite(
                     timeStamp = System.currentTimeMillis(),
                     videoId = video.id,
@@ -153,15 +124,16 @@ class SearchViewModel(
     class SearchViewModelFactory(
         private val favoriteRepository: FavoriteRepository,
         private val searchHistoryRepository: SearchHistoryRepository,
-        private val videoRepository: VideoRepository
-    ) :
-        ViewModelProvider.Factory {
+        private val getSiteVideos: GetSiteVideosUseCase,
+        private val getVideoSource: GetVideoSourceUseCase
+    ) : ViewModelProvider.Factory {
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
             if (modelClass.isAssignableFrom(SearchViewModel::class.java)) {
                 @Suppress("UNCHECKED_CAST") return SearchViewModel(
                     favoriteRepository,
                     searchHistoryRepository,
-                    videoRepository
+                    getSiteVideos,
+                    getVideoSource
                 ) as T
             }
             throw IllegalArgumentException("Unknown VieModel Class")

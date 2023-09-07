@@ -9,10 +9,8 @@ class FavoriteRepository(
 ) {
     val favorites: Flow<List<Favorite>> = favoriteDao.getFavorites()
 
-    suspend fun upsertFavorite(favorite: Favorite) = favoriteDao.upsert(favorite)
-    suspend fun deleteFavoriteById(videoId: Int) = favoriteDao.deleteById(videoId)
-
-    suspend fun favoriteByIdIsExist(videoId: Int) = favoriteDao.isVideoIdExist(videoId)
-
-    suspend fun getFavoriteById(videoId: Int) = favoriteDao.getById(videoId)
+    suspend fun upsert(favorite: Favorite) = favoriteDao.upsert(favorite)
+    suspend fun deleteById(id: Int) = favoriteDao.deleteById(id)
+    suspend fun updateVideoUrlById(id: Int, videoUrl: String) =
+        favoriteDao.updateVideoUrlById(id, videoUrl)
 }

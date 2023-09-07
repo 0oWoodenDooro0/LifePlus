@@ -34,7 +34,8 @@ fun SiteScreen(
     viewModel: SiteViewModel = viewModel(
         factory = SiteViewModel.SiteViewModelFactory(
             application.favoriteRepository,
-            application.videoRepository
+            application.getSiteVideos,
+            application.getVideoSource
         )
     )
 ) {
@@ -69,7 +70,7 @@ fun SiteScreen(
                 }
                 Box(modifier = Modifier.pullRefresh(pullRefreshState)) {
                     VideoListView(
-                        getVideoUrl = { url -> viewModel.getVideoSource(url) },
+                        getVideoUrl = { url -> viewModel.getVideoUrl(url) },
                         playVideoFullScreen = { url -> navController.navigate("fullscreenPlayer/${url.encode()}") },
                         isLoading = isLoading,
                         page = page,
