@@ -42,7 +42,6 @@ import com.example.lifeplus.domain.model.Video
 
 @Composable
 fun VideoListView(
-    videos: List<Video>,
     getVideoUrl: (Video) -> Unit,
     playVideoFullScreen: (String) -> Unit,
     addToFavorite: (Video) -> Unit,
@@ -59,7 +58,7 @@ fun VideoListView(
             CircularProgressIndicator(modifier = Modifier.width(64.dp))
         }
     } else {
-        if (videos.isEmpty()) {
+        if (page.videos.isEmpty()) {
             Column(
                 modifier = Modifier.fillMaxSize(),
                 verticalArrangement = Arrangement.Center,
@@ -69,10 +68,10 @@ fun VideoListView(
             }
         } else {
             LazyVerticalGrid(columns = GridCells.Fixed(2), modifier = Modifier.fillMaxSize()) {
-                items(count = videos.size,
-                    key = { videos[it].id },
+                items(count = page.videos.size,
+                    key = { page.videos[it].id },
                     itemContent = { index ->
-                        val video = videos[index]
+                        val video = page.videos[index]
                         VideoItem(
                             video = video,
                             getVideoUrl = { videoData ->
@@ -87,11 +86,11 @@ fun VideoListView(
                 item(span = { GridItemSpan(2) }) {
                     Row {
                         Button(
-                            onClick = { page.previousUrl?.let(changePage) },
+                            onClick = { page.previousUrl.let(changePage) },
                             modifier = Modifier
                                 .fillMaxWidth(0.25f)
                                 .padding(horizontal = 10.dp),
-                            enabled = !page.previousUrl.isNullOrEmpty()
+                            enabled = page.previousUrl.isNotEmpty()
                         ) {
                             Icon(
                                 imageVector = Icons.Default.KeyboardArrowLeft,
@@ -104,11 +103,11 @@ fun VideoListView(
                             Text(text = page.currentPage)
                         }
                         Button(
-                            onClick = { page.nextUrl?.let(changePage) },
+                            onClick = { page.nextUrl.let(changePage) },
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(horizontal = 10.dp),
-                            enabled = !page.nextUrl.isNullOrEmpty()
+                            enabled = page.nextUrl.isNotEmpty()
                         ) {
                             Text(text = "See More")
                         }

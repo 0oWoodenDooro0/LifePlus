@@ -35,13 +35,13 @@ fun SearchScreen(
     viewModel: SearchViewModel = viewModel(
         factory = SearchViewModel.SearchViewModelFactory(
             application.favoriteRepository,
-            application.searchHistoryRepository
+            application.searchHistoryRepository,
+            application.videoRepository
         )
     )
 ) {
     val searchHistorys by viewModel.searchHistorys.collectAsStateWithLifecycle()
     val currentSite by viewModel.currentSite.collectAsStateWithLifecycle()
-    val videos by viewModel.videos.collectAsStateWithLifecycle()
     val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
     val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
     val page by viewModel.page.collectAsStateWithLifecycle()
@@ -77,7 +77,6 @@ fun SearchScreen(
                 }
                 Box(modifier = Modifier.pullRefresh(pullRefreshState)) {
                     VideoListView(
-                        videos = videos,
                         getVideoUrl = { url -> viewModel.getVideoSource(url) },
                         playVideoFullScreen = { url -> navController.navigate("fullscreenPlayer/${url.encode()}") },
                         isLoading = isLoading,

@@ -5,20 +5,18 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.lifeplus.data.local.entity.Favorite
 import com.example.lifeplus.data.repository.FavoriteRepository
+import com.example.lifeplus.data.repository.VideoRepository
 import com.example.lifeplus.domain.model.Video
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import org.htmlunit.BrowserVersion
-import org.htmlunit.WebClient
-import org.htmlunit.html.HtmlPage
 
-class FavoritesViewModel(private val favoriteRepository: FavoriteRepository) : ViewModel() {
-
-    private var webClient: WebClient = WebClient(BrowserVersion.FIREFOX)
-    private lateinit var htmlPage: HtmlPage
+class FavoritesViewModel(
+    private val favoriteRepository: FavoriteRepository,
+    private val videoRepository: VideoRepository
+) : ViewModel() {
 
     val favorites: StateFlow<List<Favorite>> = favoriteRepository.favorites.stateIn(
         viewModelScope,
@@ -27,18 +25,10 @@ class FavoritesViewModel(private val favoriteRepository: FavoriteRepository) : V
     )
 
     fun getVideoSource(video: Video) = viewModelScope.launch(Dispatchers.IO) {
-        TODO()
-//        try {
-//            htmlPage = webClient.getPage(video.detailUrl)
-//        } catch (_: IOException) {
-//        }
-//        webClient.waitForBackgroundJavaScript(5000)
-//        val vidUrl =
-//            htmlPage.executeJavaScript("flashvars_${video.id}['mediaDefinitions'][flashvars_${video.id}['mediaDefinitions'].length - 2]['videoUrl']").javaScriptResult?.toString()
-//                ?: ""
-//        favorites.value.filter { it.videoId == video.id }.forEach {
-//            favoriteRepository.upsertFavorite(it.copy(videoUrl = vidUrl))
-//        }
+        val vidUrl = videoRepository.fetchVideoSource(video.detailUrl, video.id)
+        favorites.value.filter { it.videoId == video.id }.forEach {
+            favoriteRepository.upsertFavorite(it.copy(videoUrl = vidUrl))
+        }
     }
 
     fun addToFavorite(video: Video) = viewModelScope.launch(Dispatchers.IO) {
@@ -64,11 +54,17 @@ class FavoritesViewModel(private val favoriteRepository: FavoriteRepository) : V
         }
     }
 
-    class FavoritesViewModelFactory(private val favoriteRepository: FavoriteRepository) :
+    class FavoritesViewModelFactory(
+        private val favoriteRepository: FavoriteRepository,
+        private val videoRepository: VideoRepository
+    ) :
         ViewModelProvider.Factory {
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
             if (modelClass.isAssignableFrom(FavoritesViewModel::class.java)) {
-                @Suppress("UNCHECKED_CAST") return FavoritesViewModel(favoriteRepository) as T
+                @Suppress("UNCHECKED_CAST") return FavoritesViewModel(
+                    favoriteRepository,
+                    videoRepository
+                ) as T
             }
             throw IllegalArgumentException("Unknown VieModel Class")
         }

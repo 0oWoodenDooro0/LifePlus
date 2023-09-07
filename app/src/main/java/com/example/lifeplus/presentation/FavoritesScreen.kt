@@ -24,7 +24,10 @@ fun FavoritesScreen(
     application: LifeApp,
     navController: NavController,
     viewModel: FavoritesViewModel = viewModel(
-        factory = FavoritesViewModel.FavoritesViewModelFactory(application.favoriteRepository)
+        factory = FavoritesViewModel.FavoritesViewModelFactory(
+            application.favoriteRepository,
+            application.videoRepository
+        )
     )
 ) {
     val favorites by viewModel.favorites.collectAsStateWithLifecycle()

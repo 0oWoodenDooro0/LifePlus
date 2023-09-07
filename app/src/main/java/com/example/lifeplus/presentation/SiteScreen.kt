@@ -31,10 +31,14 @@ fun SiteScreen(
     drawerClick: () -> Unit,
     application: LifeApp,
     navController: NavController,
-    viewModel: SiteViewModel = viewModel(factory = SiteViewModel.SiteViewModelFactory(application.favoriteRepository))
+    viewModel: SiteViewModel = viewModel(
+        factory = SiteViewModel.SiteViewModelFactory(
+            application.favoriteRepository,
+            application.videoRepository
+        )
+    )
 ) {
     val currentSite by viewModel.currentSite.collectAsStateWithLifecycle()
-    val videos by viewModel.videos.collectAsStateWithLifecycle()
     val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
     val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
     val page by viewModel.page.collectAsStateWithLifecycle()
@@ -65,7 +69,6 @@ fun SiteScreen(
                 }
                 Box(modifier = Modifier.pullRefresh(pullRefreshState)) {
                     VideoListView(
-                        videos = videos,
                         getVideoUrl = { url -> viewModel.getVideoSource(url) },
                         playVideoFullScreen = { url -> navController.navigate("fullscreenPlayer/${url.encode()}") },
                         isLoading = isLoading,

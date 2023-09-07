@@ -1,7 +1,8 @@
 package com.example.lifeplus.domain.model
 
 data class Page(
-    var previousUrl: String? = null,
+    val videos : List<Video> = emptyList(),
+    var previousUrl: String = "",
     var currentPage: String = "1",
-    var nextUrl: String? = null
+    var nextUrl: String = ""
 )
