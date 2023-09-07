@@ -24,13 +24,13 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.example.lifeplus.R
 import com.example.lifeplus.data.local.entity.SearchHistory
-import com.example.lifeplus.domain.model.Search
+import com.example.lifeplus.domain.model.SearchTab
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SearchBox(
-    search: (Search, String) -> Unit,
-    selectedTab: Search,
+    search: (SearchTab, String) -> Unit,
+    selectedTab: SearchTab,
     searchHistorys: List<SearchHistory>
 ) {
     Column(

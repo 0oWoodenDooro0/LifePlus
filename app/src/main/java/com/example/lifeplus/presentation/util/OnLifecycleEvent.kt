@@ -1,4 +1,4 @@
-package com.example.lifeplus.ui.util
+package com.example.lifeplus.presentation.util
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect

@@ -3,8 +3,8 @@ package com.example.lifeplus.presentation
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import com.example.lifeplus.data.repository.FavoriteRepository
 import com.example.lifeplus.data.local.entity.Favorite
+import com.example.lifeplus.data.repository.FavoriteRepository
 import com.example.lifeplus.domain.model.Page
 import com.example.lifeplus.domain.model.PornHubTab
 import com.example.lifeplus.domain.model.Site
@@ -32,6 +32,7 @@ class SiteViewModel(private val favoriteRepository: FavoriteRepository) : ViewMo
     private var webClient: WebClient = WebClient(BrowserVersion.FIREFOX)
     private lateinit var htmlPage: HtmlPage
     private lateinit var baseUrl: String
+    private lateinit var currentUrl: String
 
     private var job: Job? = null
 
@@ -40,6 +41,9 @@ class SiteViewModel(private val favoriteRepository: FavoriteRepository) : ViewMo
 
     private val _isLoading = MutableStateFlow(false)
     val isLoading = _isLoading.asStateFlow()
+
+    private val _isRefreshing = MutableStateFlow(false)
+    val isRefreshing = _isRefreshing.asStateFlow()
 
     private val _videos = MutableStateFlow<List<Video>>(emptyList())
     val videos = _videos.asStateFlow()
@@ -58,9 +62,9 @@ class SiteViewModel(private val favoriteRepository: FavoriteRepository) : ViewMo
     }
 
     fun changeSite(site: Site) {
+        _currentSite.value = site
         when (site) {
             is Site.PornHub -> {
-                _currentSite.value = site
                 baseUrl = "https://pornhub.com"
                 changeTab(site.tab)
             }
@@ -72,12 +76,8 @@ class SiteViewModel(private val favoriteRepository: FavoriteRepository) : ViewMo
             is Site.PornHub -> {
                 baseUrl = "https://pornhub.com"
                 _currentSite.value = Site.PornHub(tab as PornHubTab)
-                when (tab) {
-                    is PornHubTab.Recommanded, is PornHubTab.Videos -> {
-                        val cssQuery = ".container li.pcVideoListItem.js-pop.videoblock"
-                        loadSite(baseUrl + tab.url, cssQuery)
-                    }
-                }
+                currentUrl = baseUrl + tab.url
+                loadSite(currentUrl, tab.cssQuery, _isLoading)
             }
         }
     }
@@ -85,20 +85,26 @@ class SiteViewModel(private val favoriteRepository: FavoriteRepository) : ViewMo
     fun changePage(url: String) {
         when (_currentSite.value) {
             is Site.PornHub -> {
-                when ((_currentSite.value as Site.PornHub).tab) {
-                    is PornHubTab.Recommanded, is PornHubTab.Videos -> {
-                        val cssQuery = ".container li.pcVideoListItem.js-pop.videoblock"
-                        loadSite(url, cssQuery)
-                    }
-                }
+                val tab = (_currentSite.value as Site.PornHub).tab
+                currentUrl = url
+                loadSite(currentUrl, tab.cssQuery, _isLoading)
             }
         }
     }
 
-    private fun loadSite(url: String, cssQuery: String) {
+    fun onRefresh() {
+        when (_currentSite.value) {
+            is Site.PornHub -> {
+                val tab = (_currentSite.value as Site.PornHub).tab
+                loadSite(currentUrl, tab.cssQuery, _isRefreshing)
+            }
+        }
+    }
+
+    private fun loadSite(url: String, cssQuery: String, loading: MutableStateFlow<Boolean>) {
         job?.run { if (isActive) cancel() }
         job = viewModelScope.launch(Dispatchers.IO) {
-            _isLoading.value = true
+            loading.value = true
             try {
                 htmlPage = webClient.getPage(url)
             } catch (_: IOException) {
@@ -165,7 +171,7 @@ class SiteViewModel(private val favoriteRepository: FavoriteRepository) : ViewMo
                 }
                 val page = doc.selectFirst("div.pagination3.paginationGated")
                 _page.value = page?.let {
-                    val currentPage = it.selectFirst("li.page_current")?.text() ?: "1"
+                    val currentPage = it.selectFirst("li.page_current")?.text() ?: ""
                     val pageUrl = it.select("a.orangeButton")
                     val previousPage = if (pageUrl[0].attr("href")
                             .isNullOrEmpty()
@@ -175,7 +181,7 @@ class SiteViewModel(private val favoriteRepository: FavoriteRepository) : ViewMo
                     ) null else baseUrl + pageUrl[1].attr("href")
                     Page(previousPage, currentPage, nextPage)
                 } ?: Page()
-                _isLoading.value = false
+                loading.value = false
             }
         }
     }

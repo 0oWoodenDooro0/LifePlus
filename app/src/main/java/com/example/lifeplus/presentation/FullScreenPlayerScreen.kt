@@ -27,7 +27,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.AspectRatioFrameLayout
 import androidx.media3.ui.PlayerView
-import com.example.lifeplus.ui.util.OnLifecycleEvent
+import com.example.lifeplus.presentation.util.OnLifecycleEvent
 
 @Composable
 @SuppressLint("OpaqueUnitKey", "SourceLockedOrientationActivity")
