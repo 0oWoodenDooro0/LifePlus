@@ -15,7 +15,7 @@ class LifeApp : Application() {
     private val pornHubRemote by lazy { PornHubRemote() }
     val favoriteRepository by lazy { FavoriteRepository(database.favoriteDao) }
     val searchHistoryRepository by lazy { SearchHistoryRepository(database.searchHistoryDao) }
-    private val videoRepository by lazy { VideoRepository(pornHubRemote) }
+    private val videoRepository by lazy { VideoRepository(database.pageDao, pornHubRemote) }
     val getSiteVideos by lazy { GetSiteVideosUseCase(videoRepository) }
     val getVideoSource by lazy { GetVideoSourceUseCase(videoRepository, favoriteRepository) }
     val addToFavorite by lazy { AddToFavoriteUseCase(favoriteRepository) }

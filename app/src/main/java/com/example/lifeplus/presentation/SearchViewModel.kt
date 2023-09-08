@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.lifeplus.data.local.entity.SearchHistory
 import com.example.lifeplus.data.repository.SearchHistoryRepository
+import com.example.lifeplus.data.repository.cache.CachePolicy
 import com.example.lifeplus.domain.model.Page
 import com.example.lifeplus.domain.model.SearchTab
 import com.example.lifeplus.domain.model.Video
@@ -51,7 +52,12 @@ class SearchViewModel(
             SearchTab.PornHub -> {
                 if (query != "") {
                     currentUrl = tab.url + query
-                    loadSite(currentUrl, tab.cssQuery, _isLoading)
+                    loadSite(
+                        currentUrl,
+                        tab.cssQuery,
+                        _isLoading,
+                        CachePolicy(CachePolicy.Type.EXPIRES, expires = 600_000)
+                    )
                     upsert(SearchHistory(query))
                 } else {
                     _isLoading.value = false
@@ -64,7 +70,12 @@ class SearchViewModel(
         when (currentSite.value) {
             SearchTab.PornHub -> {
                 currentUrl = url
-                loadSite(url, currentSite.value.cssQuery, _isLoading)
+                loadSite(
+                    url,
+                    currentSite.value.cssQuery,
+                    _isLoading,
+                    CachePolicy(CachePolicy.Type.EXPIRES, expires = 600_000)
+                )
             }
         }
     }
@@ -72,15 +83,24 @@ class SearchViewModel(
     fun onRefresh() {
         when (currentSite.value) {
             SearchTab.PornHub -> {
-                loadSite(currentUrl, currentSite.value.cssQuery, _isRefreshing)
+                loadSite(
+                    currentUrl,
+                    currentSite.value.cssQuery,
+                    _isRefreshing,
+                    CachePolicy(CachePolicy.Type.REFRESH)
+                )
             }
         }
     }
 
-    private fun loadSite(url: String, cssQuery: String, loading: MutableStateFlow<Boolean>) =
-        viewModelScope.launch(Dispatchers.IO) {
-            _page.value = getSiteVideos(url, cssQuery, loading)
-        }
+    private fun loadSite(
+        url: String,
+        cssQuery: String,
+        loading: MutableStateFlow<Boolean>,
+        cachePolicy: CachePolicy
+    ) = viewModelScope.launch(Dispatchers.IO) {
+        _page.value = getSiteVideos(url, cssQuery, loading, cachePolicy)
+    }
 
     fun getVideoUrl(video: Video) = viewModelScope.launch(Dispatchers.IO) {
         _page.value = getVideoSource(video, page.value)
