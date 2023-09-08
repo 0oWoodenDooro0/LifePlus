@@ -25,7 +25,8 @@ data class VideoEntity(
     val views: String,
     val rating: String,
     val added: String,
-    var videoUrl: String = "",
+    val videoUrl: String = "",
+    val isFavorite: Boolean,
     val pageUrl: String,
     @PrimaryKey(autoGenerate = true)
     val id: Int = 0
@@ -44,6 +45,6 @@ fun VideoEntity.toVideo(): Video {
         rating = this.rating,
         added = this.added,
         videoUrl = this.videoUrl,
-        isFavorite = false
+        isFavorite = this.isFavorite
     )
 }

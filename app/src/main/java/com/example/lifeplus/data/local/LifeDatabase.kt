@@ -5,7 +5,6 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import com.example.lifeplus.data.local.entity.Favorite
-import com.example.lifeplus.data.local.entity.PageDao
 import com.example.lifeplus.data.local.entity.PageEntity
 import com.example.lifeplus.data.local.entity.SearchHistory
 import com.example.lifeplus.data.local.entity.VideoEntity

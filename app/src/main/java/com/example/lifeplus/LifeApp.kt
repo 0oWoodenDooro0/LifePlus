@@ -4,6 +4,7 @@ import android.app.Application
 import com.example.lifeplus.data.local.LifeDatabase
 import com.example.lifeplus.data.remote.PornHubRemote
 import com.example.lifeplus.data.repository.FavoriteRepository
+import com.example.lifeplus.data.repository.PageRepository
 import com.example.lifeplus.data.repository.SearchHistoryRepository
 import com.example.lifeplus.data.repository.VideoRepository
 import com.example.lifeplus.domain.use_case.AddToFavoriteUseCase
@@ -16,7 +17,8 @@ class LifeApp : Application() {
     val favoriteRepository by lazy { FavoriteRepository(database.favoriteDao) }
     val searchHistoryRepository by lazy { SearchHistoryRepository(database.searchHistoryDao) }
     private val videoRepository by lazy { VideoRepository(database.pageDao, pornHubRemote) }
-    val getSiteVideos by lazy { GetSiteVideosUseCase(videoRepository) }
-    val getVideoSource by lazy { GetVideoSourceUseCase(videoRepository, favoriteRepository) }
-    val addToFavorite by lazy { AddToFavoriteUseCase(favoriteRepository) }
+    private val pageRepository by lazy { PageRepository(database.pageDao) }
+    val getSiteVideos by lazy { GetSiteVideosUseCase(videoRepository, favoriteRepository) }
+    val getVideoSource by lazy { GetVideoSourceUseCase(videoRepository, favoriteRepository, pageRepository) }
+    val addToFavorite by lazy { AddToFavoriteUseCase(favoriteRepository, pageRepository) }
 }

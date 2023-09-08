@@ -1,6 +1,6 @@
 package com.example.lifeplus.data.repository
 
-import com.example.lifeplus.data.local.entity.PageDao
+import com.example.lifeplus.data.local.PageDao
 import com.example.lifeplus.data.local.entity.relations.toPage
 import com.example.lifeplus.data.remote.PornHubRemote
 import com.example.lifeplus.data.repository.cache.CachePolicy

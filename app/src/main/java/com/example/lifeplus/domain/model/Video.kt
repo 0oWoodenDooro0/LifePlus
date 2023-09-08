@@ -48,6 +48,7 @@ fun Video.toVideoEntity(pageUrl: String): VideoEntity{
         rating = this.rating,
         added = this.added,
         videoUrl = this.videoUrl,
+        isFavorite = this.isFavorite,
         pageUrl = pageUrl
     )
 }
