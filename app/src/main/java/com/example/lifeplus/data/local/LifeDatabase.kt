@@ -10,7 +10,7 @@ import com.example.lifeplus.data.local.entity.SearchHistory
 import com.example.lifeplus.data.local.entity.VideoEntity
 
 @Database(
-    entities = [SearchHistory::class, Favorite::class, PageEntity::class, VideoEntity::class], version = 3, exportSchema = false
+    entities = [SearchHistory::class, Favorite::class, PageEntity::class, VideoEntity::class], version = 5, exportSchema = false
 )
 abstract class LifeDatabase : RoomDatabase() {
     abstract val searchHistoryDao: SearchHistoryDao
